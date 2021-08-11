@@ -19,13 +19,13 @@
 typedef uintptr_t MPIwrapper_Aint;
 static_assert(sizeof(MPI_Aint) == sizeof(MPIwrapper_Aint));
 
-typedef ptrdiff_t MPIwrapper_Count;
+typedef int64_t MPIwrapper_Count;
 static_assert(sizeof(MPI_Count) == sizeof(MPIwrapper_Count));
 
 typedef int MPIwrapper_Fint;
 static_assert(sizeof(MPI_Fint) == sizeof(MPIwrapper_Fint));
 
-typedef ptrdiff_t MPIwrapper_Offset;
+typedef int64_t MPIwrapper_Offset;
 static_assert(sizeof(MPI_Offset) == sizeof(MPIwrapper_Offset));
 
 ////////////////////////////////////////////////////////////////////////////////
