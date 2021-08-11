@@ -46,6 +46,16 @@ union MPIwrapper_Datatype {
 };
 static_assert(sizeof(MPI_Datatype) <= sizeof(MPIwrapper_Datatype));
 
+union MPIwrapper_File {
+  MPI_File file;
+  uintptr_t padding;
+
+  MPIwrapper_File() = default;
+  MPIwrapper_File(MPI_File file_) : file(file_) {}
+  operator MPI_File() const { return file; }
+};
+static_assert(sizeof(MPI_File) <= sizeof(MPIwrapper_File));
+
 union MPIwrapper_Group {
   MPI_Group group;
   uintptr_t padding;

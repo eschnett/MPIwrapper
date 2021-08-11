@@ -1,8 +1,7 @@
 #[[
 rm -rf build
-cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER=mpicxx-openmpi-gcc11 -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff
-cmake --build build
-cmake --install build
+cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER=mpicxx-openmpi-gcc11 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff
+cmake --build build && cmake --install build
 ]]
 
 cmake_minimum_required(VERSION 3.12...3.20)
