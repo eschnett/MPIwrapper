@@ -328,6 +328,8 @@ static_assert(op_translations.size() == wrapper_functions.size());
 
 // Handle array types manually
 
+// 3.7 Nonblocking Communication
+
 extern "C" int MT(Waitany)(int count, MT(Request) array_of_requests[],
                            int *indx, MT(StatusPtr) status) {
   if (sizeof(MP(Request)) == sizeof(MT(Request)))
@@ -429,6 +431,8 @@ extern "C" int MT(Testsome)(int incount, MT(Request) array_of_requests[],
   return ierr;
 }
 
+// 3.9 Persistent Communication Requests
+
 extern "C" int MT(Startall)(int count, MT(Request) array_of_requests[]) {
   if (sizeof(MP(Request)) == sizeof(MT(Request)))
     return MP(Startall)(count, (MP(Request) *)array_of_requests);
@@ -440,6 +444,48 @@ extern "C" int MT(Startall)(int count, MT(Request) array_of_requests[]) {
     array_of_requests[i] = (MT(Request))reqs[i];
   return ierr;
 }
+
+// 4.1 Derived Datatypes
+
+extern "C" int MT(Type_create_struct)(int count,
+                                      const int array_of_blocklengths[],
+                                      const MT(Aint) array_of_displacements[],
+                                      const MT(Datatype) array_of_types[],
+                                      MT(Datatype) * newtype) {
+  if (sizeof(MP(Datatype)) == sizeof(MT(Datatype)))
+    return MP(Type_create_struct)(
+        count, array_of_blocklengths, (const MP(Aint) *)array_of_displacements,
+        (const MP(Datatype) *)array_of_types, (MP(Datatype) *)newtype);
+  std::vector<MP(Datatype)> types(count);
+  for (int i = 0; i < count; ++i)
+    types[i] = (MP(Datatype))array_of_types[i];
+  const int ierr = MP(Type_create_struct)(
+      count, array_of_blocklengths, (const MP(Aint) *)array_of_displacements,
+      types.data(), (MP(Datatype) *)newtype);
+  return ierr;
+}
+
+extern "C" int MT(Type_get_contents)(MT(Datatype) datatype, int max_integers,
+                                     int max_addresses, int max_datatypes,
+                                     int array_of_integers[],
+                                     MT(Aint) array_of_addresses[],
+                                     MT(Datatype) array_of_datatypes[]) {
+  if (sizeof(MP(Datatype)) == sizeof(MT(Datatype)))
+    return MP(Type_get_contents)(
+        (MP(Datatype))datatype, max_integers, max_addresses, max_datatypes,
+        array_of_integers, (MP(Aint) *)array_of_addresses,
+        (MP(Datatype) *)array_of_datatypes);
+  std::vector<MP(Datatype)> types(max_datatypes);
+  const int ierr = MP(Type_get_contents)(
+      (MP(Datatype))datatype, max_integers, max_addresses, max_datatypes,
+      array_of_integers, (MP(Aint) *)array_of_addresses,
+      (MP(Datatype) *)array_of_datatypes);
+  for (int i = 0; i < max_datatypes; ++i)
+    array_of_datatypes[i] = (MT(Datatype))types[i];
+  return ierr;
+}
+
+// 5.8 All-to-All Scatter/Gather
 
 extern "C" int MT(Alltoallw)(const void *sendbuf, const int sendcounts[],
                              const int sdispls[],
@@ -463,6 +509,8 @@ extern "C" int MT(Alltoallw)(const void *sendbuf, const int sendcounts[],
                     recvcounts, rdispls, rtypes.data(), (MP(Comm))comm);
   return ierr;
 }
+
+// 5.9 Global Reduction Operations
 
 extern "C" int MT(Op_create)(MT(User_function) * user_fn, int commute,
                              MT(Op) * op) {
