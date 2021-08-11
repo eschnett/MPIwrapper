@@ -9,22 +9,28 @@
 #include <utility>
 #include <vector>
 
-////////////////////////////////////////////////////////////////////////////////
-
 // We implement this file in C++ so that we can automatically convert between
 // the `MPI` and `MPIwrapper` types
+
+////////////////////////////////////////////////////////////////////////////////
+
+// Simple types
 
 typedef uintptr_t MPIwrapper_Aint;
 static_assert(sizeof(MPI_Aint) == sizeof(MPIwrapper_Aint));
 
-typedef int MPIwrapper_Fint;
-static_assert(sizeof(MPI_Fint) == sizeof(MPIwrapper_Fint));
-
 typedef ptrdiff_t MPIwrapper_Count;
 static_assert(sizeof(MPI_Count) == sizeof(MPIwrapper_Count));
 
+typedef int MPIwrapper_Fint;
+static_assert(sizeof(MPI_Fint) == sizeof(MPIwrapper_Fint));
+
 typedef ptrdiff_t MPIwrapper_Offset;
 static_assert(sizeof(MPI_Offset) == sizeof(MPIwrapper_Offset));
+
+////////////////////////////////////////////////////////////////////////////////
+
+// Handles
 
 union MPIwrapper_Comm {
   MPI_Comm comm;
@@ -116,6 +122,11 @@ union MPIwrapper_Win {
 };
 static_assert(sizeof(MPI_Win) <= sizeof(MPIwrapper_Win));
 
+////////////////////////////////////////////////////////////////////////////////
+
+// MPI_Status
+// This is a difficult type since it has user-accessible fields.
+
 // We put the MPI_Status struct in the beginning. This way, we can cast between
 // MPI_Status* and MPIwrapper_Status*.
 typedef struct MPIwrapper_Status {
@@ -204,8 +215,37 @@ struct MPIwrapper_const_StatusPtr {
   }
 };
 
+////////////////////////////////////////////////////////////////////////////////
+
+// Call-back function types
+
+typedef int(MPIwrapper_Comm_copy_attr_function)(MPIwrapper_Comm, int, void *,
+                                                void *, void *, int *);
+typedef int(MPIwrapper_Comm_delete_attr_function)(MPIwrapper_Comm, int, void *,
+                                                  void *);
+typedef void(MPIwrapper_Comm_errhandler_function)(MPIwrapper_Comm *, int *,
+                                                  ...);
+typedef int(MPIwrapper_Copy_function)(MPIwrapper_Comm, int, void *, void *,
+                                      void *, int *);
+typedef int(MPIwrapper_Delete_function)(MPIwrapper_Comm, int, void *, void *);
+typedef void(MPIwrapper_File_errhandler_function)(MPIwrapper_File *, int *,
+                                                  ...);
+typedef int(MPIwrapper_Type_copy_attr_function)(MPIwrapper_Datatype, int,
+                                                void *, void *, void *, int *);
+typedef int(MPIwrapper_Type_delete_attr_function)(MPIwrapper_Datatype, int,
+                                                  void *, void *);
 typedef void(MPIwrapper_User_function)(void *a, void *b, int *len,
                                        MPIwrapper_Datatype *datatype);
+typedef int(MPIwrapper_Win_copy_attr_function)(MPIwrapper_Win, int, void *,
+                                               void *, void *, int *);
+typedef int(MPIwrapper_Win_delete_attr_function)(MPIwrapper_Win, int, void *,
+                                                 void *);
+typedef void(MPIwrapper_Win_errhandler_function)(MPIwrapper_Win *, int *, ...);
+
+////////////////////////////////////////////////////////////////////////////////
+
+// Translate user functions for MPI_Op
+
 struct op_translation_t {
   MPIwrapper_User_function *user_function;
   MPI_Op op;
@@ -251,28 +291,9 @@ static_assert(op_translations.size() == wrapper_functions.size());
 
 } // namespace
 
-typedef int(MPIwrapper_Comm_copy_attr_function)(MPIwrapper_Comm, int, void *,
-                                                void *, void *, int *);
-typedef int(MPIwrapper_Comm_delete_attr_function)(MPIwrapper_Comm, int, void *,
-                                                  void *);
-typedef void(MPIwrapper_Comm_errhandler_function)(MPIwrapper_Comm *, int *,
-                                                  ...);
-typedef int(MPIwrapper_Copy_function)(MPIwrapper_Comm, int, void *, void *,
-                                      void *, int *);
-typedef int(MPIwrapper_Delete_function)(MPIwrapper_Comm, int, void *, void *);
-typedef void(MPIwrapper_File_errhandler_function)(MPIwrapper_File *, int *,
-                                                  ...);
-typedef int(MPIwrapper_Type_copy_attr_function)(MPIwrapper_Datatype, int,
-                                                void *, void *, void *, int *);
-typedef int(MPIwrapper_Type_delete_attr_function)(MPIwrapper_Datatype, int,
-                                                  void *, void *);
-typedef int(MPIwrapper_Win_copy_attr_function)(MPIwrapper_Win, int, void *,
-                                               void *, void *, int *);
-typedef int(MPIwrapper_Win_delete_attr_function)(MPIwrapper_Win, int, void *,
-                                                 void *);
-typedef void(MPIwrapper_Win_errhandler_function)(MPIwrapper_Win *, int *, ...);
-
 ////////////////////////////////////////////////////////////////////////////////
+
+// Wrap constants
 
 #define MT(TYPE) MPIwrapper_##TYPE
 #define CONSTANT(TYPE, NAME)                                                   \
@@ -284,7 +305,9 @@ typedef void(MPIwrapper_Win_errhandler_function)(MPIwrapper_Win *, int *, ...);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#define SKIP_ARRAY_TYPES
+// Wrap functions
+
+#define SKIP_MANUAL_FUNCTIONS
 
 #define MT(TYPE) MPIwrapper_##TYPE
 #define MP(TYPE) MPI_##TYPE
@@ -448,4 +471,4 @@ extern "C" int MT(Op_free)(MT(Op) * op) {
 #undef MT
 #undef MP
 
-#undef SKIP_ARRAY_TYPES
+#undef SKIP_MANUAL_FUNCTIONS
