@@ -4,7 +4,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <array>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -174,17 +176,48 @@ struct MPIwrapper_const_StatusPtr {
 
 typedef void(MPIwrapper_User_function)(void *a, void *b, int *len,
                                        MPIwrapper_Datatype *datatype);
-
-const int num_operators = 100;
-std::vector<MPIwrapper_User_function *> user_functions(num_operators, nullptr);
-template <int N> struct MPIwrapper_Operator {
-  void operator()(void *a, void *b, int *len, MPI_Datatype *datatype) const {
-    user_functions[N](a, b, len, (MPIwrapper_Datatype *)datatype);
-  }
+struct op_translation_t {
+  MPIwrapper_User_function *user_function;
+  MPI_Op op;
+  op_translation_t() : user_function(nullptr) {}
 };
-template <> struct MPIwrapper_Operator<0>;
-template <> struct MPIwrapper_Operator<1>;
-template <> struct MPIwrapper_Operator<2>;
+const int num_op_translations = 10;
+std::array<op_translation_t, num_op_translations> op_translations;
+
+int insert_op_translation(MPIwrapper_User_function *const user_fn) {
+  int n = 0;
+  while (n < int(op_translations.size()) && op_translations[n].user_function)
+    ++n;
+  if (n == int(op_translations.size())) {
+    fprintf(stderr, "Too many operators defined\n");
+    exit(1);
+  }
+  op_translations[n].user_function = user_fn;
+  op_translations[n].op = MPI_OP_NULL;
+  return n;
+}
+void free_op_translation(const MPI_Op op) {
+  int n = 0;
+  while (n < int(op_translations.size()) && op != op_translations[n].op)
+    ++n;
+  if (n == int(op_translations.size())) {
+    fprintf(stderr, "Could not find operator\n");
+    exit(1);
+  }
+  op_translations[n] = op_translation_t();
+}
+
+template <int N>
+void wrapper_function(void *a, void *b, int *len, MPI_Datatype *datatype) {
+  op_translations[N].user_function(a, b, len, (MPIwrapper_Datatype *)datatype);
+}
+const std::array<MPI_User_function *, num_op_translations> wrapper_functions{
+    wrapper_function<0>, wrapper_function<1>, wrapper_function<2>,
+    wrapper_function<3>, wrapper_function<4>, wrapper_function<5>,
+    wrapper_function<6>, wrapper_function<7>, wrapper_function<8>,
+    wrapper_function<9>,
+};
+static_assert(op_translations.size() == wrapper_functions.size());
 
 } // namespace
 
@@ -342,6 +375,20 @@ extern "C" int MT(Alltoallw)(const void *sendbuf, const int sendcounts[],
   const int ierr =
       MP(Alltoallw)(sendbuf, sendcounts, sdispls, stypes.data(), recvbuf,
                     recvcounts, rdispls, rtypes.data(), (MP(Comm))comm);
+  return ierr;
+}
+
+extern "C" int MT(Op_create)(MT(User_function) * user_fn, int commute,
+                             MT(Op) * op) {
+  const int n = insert_op_translation(user_fn);
+  const int ierr = MP(Op_create)(wrapper_functions[n], commute, (MP(Op) *)op);
+  op_translations[n].op = *op;
+  return ierr;
+}
+
+extern "C" int MT(Op_free)(MT(Op) * op) {
+  free_op_translation(*op);
+  const int ierr = MP(Op_free)((MP(Op) *)op);
   return ierr;
 }
 
