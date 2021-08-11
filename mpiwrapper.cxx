@@ -46,6 +46,16 @@ union MPIwrapper_Datatype {
 };
 static_assert(sizeof(MPI_Datatype) <= sizeof(MPIwrapper_Datatype));
 
+union MPIwrapper_Errhandler {
+  MPI_Errhandler errhandler;
+  uintptr_t padding;
+
+  MPIwrapper_Errhandler() = default;
+  MPIwrapper_Errhandler(MPI_Errhandler errhandler_) : errhandler(errhandler_) {}
+  operator MPI_Errhandler() const { return errhandler; }
+};
+static_assert(sizeof(MPI_Errhandler) <= sizeof(MPIwrapper_Errhandler));
+
 union MPIwrapper_File {
   MPI_File file;
   uintptr_t padding;
@@ -95,6 +105,16 @@ union MPIwrapper_Request {
   operator MPI_Request() const { return request; }
 };
 static_assert(sizeof(MPI_Request) <= sizeof(MPIwrapper_Request));
+
+union MPIwrapper_Win {
+  MPI_Win win;
+  uintptr_t padding;
+
+  MPIwrapper_Win() = default;
+  MPIwrapper_Win(MPI_Win win_) : win(win_) {}
+  operator MPI_Win() const { return win; }
+};
+static_assert(sizeof(MPI_Win) <= sizeof(MPIwrapper_Win));
 
 // We put the MPI_Status struct in the beginning. This way, we can cast between
 // MPI_Status* and MPIwrapper_Status*.
@@ -231,13 +251,36 @@ static_assert(op_translations.size() == wrapper_functions.size());
 
 } // namespace
 
+typedef int(MPIwrapper_Comm_copy_attr_function)(MPIwrapper_Comm, int, void *,
+                                                void *, void *, int *);
+typedef int(MPIwrapper_Comm_delete_attr_function)(MPIwrapper_Comm, int, void *,
+                                                  void *);
+typedef void(MPIwrapper_Comm_errhandler_function)(MPIwrapper_Comm *, int *,
+                                                  ...);
+typedef int(MPIwrapper_Copy_function)(MPIwrapper_Comm, int, void *, void *,
+                                      void *, int *);
+typedef int(MPIwrapper_Delete_function)(MPIwrapper_Comm, int, void *, void *);
+typedef void(MPIwrapper_File_errhandler_function)(MPIwrapper_File *, int *,
+                                                  ...);
+typedef int(MPIwrapper_Type_copy_attr_function)(MPIwrapper_Datatype, int,
+                                                void *, void *, void *, int *);
+typedef int(MPIwrapper_Type_delete_attr_function)(MPIwrapper_Datatype, int,
+                                                  void *, void *);
+typedef int(MPIwrapper_Win_copy_attr_function)(MPIwrapper_Win, int, void *,
+                                               void *, void *, int *);
+typedef int(MPIwrapper_Win_delete_attr_function)(MPIwrapper_Win, int, void *,
+                                                 void *);
+typedef void(MPIwrapper_Win_errhandler_function)(MPIwrapper_Win *, int *, ...);
+
 ////////////////////////////////////////////////////////////////////////////////
 
+#define MT(TYPE) MPIwrapper_##TYPE
 #define CONSTANT(TYPE, NAME)                                                   \
-  extern "C" const MPIwrapper_##TYPE MPIWRAPPER_##NAME;                        \
-  const MPIwrapper_##TYPE MPIWRAPPER_##NAME = (MPIwrapper_##TYPE)MPI_##NAME;
+  extern "C" const TYPE MPIWRAPPER_##NAME;                                     \
+  const TYPE MPIWRAPPER_##NAME = (TYPE)MPI_##NAME;
 #include "mpi-constants.inc"
 #undef CONSTANT
+#undef MT
 
 ////////////////////////////////////////////////////////////////////////////////
 

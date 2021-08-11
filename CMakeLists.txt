@@ -1,6 +1,6 @@
 #[[
 rm -rf build
-cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER=mpicxx-openmpi-gcc11 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff
+cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER=mpicxx-openmpi-gcc11 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff
 cmake --build build && cmake --install build
 ]]
 
