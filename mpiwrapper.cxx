@@ -92,6 +92,16 @@ union MPIwrapper_Info {
 };
 static_assert(sizeof(MPI_Info) <= sizeof(MPIwrapper_Info));
 
+union MPIwrapper_Message {
+  MPI_Message message;
+  uintptr_t padding;
+
+  MPIwrapper_Message() = default;
+  MPIwrapper_Message(MPI_Message message_) : message(message_) {}
+  operator MPI_Message() const { return message; }
+};
+static_assert(sizeof(MPI_Message) <= sizeof(MPIwrapper_Message));
+
 union MPIwrapper_Op {
   MPI_Op op;
   uintptr_t padding;
