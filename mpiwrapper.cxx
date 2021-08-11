@@ -170,7 +170,7 @@ struct MPIwrapper_const_StatusPtr {
 #define CONSTANT(TYPE, NAME)                                                   \
   extern "C" const MPIwrapper_##TYPE MPIWRAPPER_##NAME;                        \
   const MPIwrapper_##TYPE MPIWRAPPER_##NAME = (MPIwrapper_##TYPE)MPI_##NAME;
-#include "constants.inc"
+#include "mpi-constants.inc"
 #undef CONSTANT
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -181,7 +181,7 @@ struct MPIwrapper_const_StatusPtr {
 #define MP(TYPE) MPI_##TYPE
 #define FUNCTION(RTYPE, NAME, PTYPES, PNAMES)                                  \
   extern "C" RTYPE MPIwrapper_##NAME PTYPES { return MPI_##NAME PNAMES; }
-#include "functions.inc"
+#include "mpi-functions.inc"
 #undef FUNCTION
 
 // Handle array types manually
