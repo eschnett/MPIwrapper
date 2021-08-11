@@ -172,6 +172,20 @@ struct MPIwrapper_const_StatusPtr {
   }
 };
 
+typedef void(MPIwrapper_User_function)(void *a, void *b, int *len,
+                                       MPIwrapper_Datatype *datatype);
+
+const int num_operators = 100;
+std::vector<MPIwrapper_User_function *> user_functions(num_operators, nullptr);
+template <int N> struct MPIwrapper_Operator {
+  void operator()(void *a, void *b, int *len, MPI_Datatype *datatype) const {
+    user_functions[N](a, b, len, (MPIwrapper_Datatype *)datatype);
+  }
+};
+template <> struct MPIwrapper_Operator<0>;
+template <> struct MPIwrapper_Operator<1>;
+template <> struct MPIwrapper_Operator<2>;
+
 } // namespace
 
 ////////////////////////////////////////////////////////////////////////////////
