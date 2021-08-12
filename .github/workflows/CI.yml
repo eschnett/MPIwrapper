@@ -1,4 +1,4 @@
-name: CI OpenMPI
+name: CI
 
 on:
   push:
@@ -11,6 +11,10 @@ env:
 
 jobs:
   build:
+    strategy:
+      matrix:
+        mpi: [MPICH, OpenMPI]
+
     # The CMake configure and build commands are platform agnostic and
     # should work equally well on Windows or Mac. You can convert this
     # to a matrix build if you need cross-platform coverage. See:
@@ -20,8 +24,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install OpenMPI
-      run: sudo apt-get install libopenmpi-dev
+    - name: Install ${{matrix.mpi}}
+      run: |
+        case "${{matrix.mpi}}" in
+            MPICH) packages=libmpich-dev;;
+            OpenMPI) packages=libopenmpi-dev;;
+        esac
+        sudo apt-get install ${packages}
 
     - name: Configure
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE`
