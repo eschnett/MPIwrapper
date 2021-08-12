@@ -1,4 +1,4 @@
-name: CI
+name: CI OpenMPI
 
 on:
   push:
@@ -20,8 +20,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install MPICH
-      run: sudo apt-get install libmpich-dev
+    - name: Install OpenMPI
+      run: sudo apt-get install libopenmpi-dev
 
     - name: Configure
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE`
