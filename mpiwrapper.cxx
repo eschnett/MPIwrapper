@@ -526,6 +526,14 @@ extern "C" int MT(Op_free)(MT(Op) * op) {
   return ierr;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+extern "C" int MT(Get_version)(int *version, int *subversion) {
+  *version = 3;
+  *subversion = 1;
+  return MPI_SUCCESS;
+}
+
 #undef MT
 #undef MP
 
