@@ -179,8 +179,6 @@ typedef struct MPIwrapper_Status {
 static_assert(std::is_pod<MPIwrapper_Status>::value);
 static_assert(sizeof MPIwrapper_Status::wrapped >= sizeof(MPI_Status));
 
-namespace {
-
 // TODO: Don't define this
 typedef MPI_Status *MPI_StatusPtr;
 typedef const MPI_Status *MPI_const_StatusPtr;
@@ -255,6 +253,8 @@ typedef void(MPIwrapper_Win_errhandler_function)(MPIwrapper_Win *, int *, ...);
 
 ////////////////////////////////////////////////////////////////////////////////
 
+#if 0
+
 // Translate user functions for MPI_Op
 
 struct op_translation_t {
@@ -304,7 +304,7 @@ const std::array<MPI_User_function *, num_op_translations> wrapper_functions{
 };
 static_assert(op_translations.size() == wrapper_functions.size());
 
-} // namespace
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -517,6 +517,7 @@ extern "C" int MT(Alltoallw)(const void *sendbuf, const int sendcounts[],
 
 // 5.9 Global Reduction Operations
 
+#if 0
 extern "C" int MT(Op_create)(MT(User_function) * user_fn, int commute,
                              MT(Op) * op) {
   const int n = insert_op_translation(user_fn);
@@ -530,6 +531,7 @@ extern "C" int MT(Op_free)(MT(Op) * op) {
   const int ierr = MP(Op_free)((MP(Op) *)op);
   return ierr;
 }
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 
