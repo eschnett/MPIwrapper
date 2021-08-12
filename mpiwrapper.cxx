@@ -148,14 +148,14 @@ typedef struct MPIwrapper_Status {
       int f2;
       int f3;
       size_t f4;
-    } OpenMPI; // also Spectrum
+    } padding_OpenMPI; // also Spectrum
     struct {
       int f0;
       int f1;
       int f2;
       int f3;
       int f4;
-    } MPICH; // also Intel
+    } padding_MPICH; // also Intel
   } wrapped;
   mutable int MPI_SOURCE;
   mutable int MPI_TAG;
@@ -322,7 +322,13 @@ static_assert(op_translations.size() == wrapper_functions.size());
 #define MT(TYPE) MPIwrapper_##TYPE
 #define MP(TYPE) MPI_##TYPE
 #define FUNCTION(RTYPE, NAME, PTYPES, PNAMES)                                  \
-  extern "C" RTYPE MPIwrapper_##NAME PTYPES { return MPI_##NAME PNAMES; }
+  extern "C" RTYPE MPIwrapper_##NAME PTYPES {                                  \
+    /* return MPI_##NAME PNAMES; */                                            \
+    fprintf(stderr, #NAME ".0\n");                                             \
+    const RTYPE ret = MPI_##NAME PNAMES;                                       \
+    fprintf(stderr, #NAME ".9\n");                                             \
+    return ret;                                                                \
+  }
 #include "mpi-functions.inc"
 #undef FUNCTION
 

@@ -1,7 +1,26 @@
 #[[
-rm -rf build
-cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER=mpicxx-openmpi-gcc11 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff
-cmake --build build && cmake --install build
+rm -rf build-openmpi ../MPIstuff-openmpi
+cmake -S . -B build-openmpi -G Ninja -DCMAKE_CXX_COMPILER=mpicxx-openmpi-gcc11 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff-openmpi
+cmake --build build-openmpi && cmake --install build-openmpi
+
+rm -rf build-mpich ../MPIstuff-mpich
+cmake -S . -B build-mpich -G Ninja -DCMAKE_CXX_COMPILER=mpicxx-mpich-gcc10 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff-mpich
+cmake --build build-mpich && cmake --install build-mpich
+
+
+
+export PATH=$HOME/src/spack/opt/spack/linux-ubuntu18.04-skylake_avx512/gcc-11.2.0/cmake-3.21.1-ztbpwc6mr65mqagnikcuuiifn3ox6btv/bin:$PATH
+rm -rf build-openmpi ../MPIstuff-openmpi
+cmake -S . -B build-openmpi -G Ninja -DCMAKE_CXX_COMPILER=/cm/shared/apps/openmpi/gcc-9/64/4.1.0/bin/mpic++ -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../MPIstuff-openmpi
+cmake --build build-openmpi && cmake --install build-openmpi
+
+export PATH=$HOME/src/spack/opt/spack/linux-ubuntu18.04-skylake_avx512/gcc-11.2.0/cmake-3.21.1-ztbpwc6mr65mqagnikcuuiifn3ox6btv/bin:$PATH
+module load mpi
+rm -rf build-intel ../MPIstuff-intel
+cmake -S . -B build-intel -G Ninja -DCMAKE_CXX_COMPILER=/cm/shared/apps/intel/mpi/2021.1.1/bin/mpicxx -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../MPIstuff-intel
+cmake --build build-intel && cmake --install build-intel
+module unload mpi
+
 ]]
 
 cmake_minimum_required(VERSION 3.12...3.20)
@@ -14,7 +33,7 @@ project(
 find_package(MPI REQUIRED)
 
 add_library(mpiwrapper SHARED mpiwrapper.cxx)
-target_link_libraries(mpiwrapper PUBLIC MPI::MPI_CXX)
+target_link_libraries(mpiwrapper PRIVATE MPI::MPI_CXX)
 
 install(
   TARGETS mpiwrapper
