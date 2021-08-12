@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include <array>
+#include <mutex>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -260,11 +261,14 @@ struct op_translation_t {
   MPIwrapper_User_function *user_function;
   MPI_Op op;
   op_translation_t() : user_function(nullptr) {}
+  static std::mutex mutex;
 };
+std::mutex op_translation_t::mutex;
 const int num_op_translations = 10;
 std::array<op_translation_t, num_op_translations> op_translations;
 
 int insert_op_translation(MPIwrapper_User_function *const user_fn) {
+  std::lock_guard<std::mutex> lock(op_translation_t::mutex);
   int n = 0;
   while (n < int(op_translations.size()) && op_translations[n].user_function)
     ++n;
@@ -277,6 +281,7 @@ int insert_op_translation(MPIwrapper_User_function *const user_fn) {
   return n;
 }
 void free_op_translation(const MPI_Op op) {
+  std::lock_guard<std::mutex> lock(op_translation_t::mutex);
   int n = 0;
   while (n < int(op_translations.size()) && op != op_translations[n].op)
     ++n;
