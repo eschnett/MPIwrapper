@@ -49,3 +49,15 @@ jobs:
       # https://cmake.org/cmake/help/latest/manual/ctest.1.html for
       # more detail
       run: ctest -C ${{env.BUILD_TYPE}}
+
+    - name: Install
+      # Install your program
+      run: cmake --install ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: List
+      run: ls -lR /usr/local
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: libmpiwrapper-${{matrix.mpi}}
+        path: /usr/local/lib/libmpiwrapper.so*
