@@ -57,6 +57,11 @@ FUNCTION(int, Irsend,
           MT(Comm) comm, MT(Request) * request),
          (buf, count, (MP(Datatype))datatype, dest, tag, (MP(Comm))comm,
           (MP(Request) *)request))
+FUNCTION(int, Irecv,
+         (void *buf, int count, MT(Datatype) datatype, int source, int tag,
+          MT(Comm) comm, MT(Request) * request),
+         (buf, count, (MP(Datatype))datatype, source, tag, (MP(Comm))comm,
+          (MP(Request) *)request))
 FUNCTION(int, Wait, (MT(Request) * request, MT(StatusPtr) status),
          ((MP(Request) *)request, (MP(StatusPtr))status))
 FUNCTION(int, Test, (MT(Request) * request, int *flag, MT(StatusPtr) status),

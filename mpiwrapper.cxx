@@ -322,13 +322,7 @@ static_assert(op_translations.size() == wrapper_functions.size());
 #define MT(TYPE) MPIwrapper_##TYPE
 #define MP(TYPE) MPI_##TYPE
 #define FUNCTION(RTYPE, NAME, PTYPES, PNAMES)                                  \
-  extern "C" RTYPE MPIwrapper_##NAME PTYPES {                                  \
-    /* return MPI_##NAME PNAMES; */                                            \
-    fprintf(stderr, #NAME ".0\n");                                             \
-    const RTYPE ret = MPI_##NAME PNAMES;                                       \
-    fprintf(stderr, #NAME ".9\n");                                             \
-    return ret;                                                                \
-  }
+  extern "C" RTYPE MPIwrapper_##NAME PTYPES { return MPI_##NAME PNAMES; }
 #include "mpi-functions.inc"
 #undef FUNCTION
 
