@@ -52,7 +52,7 @@ jobs:
 
     - name: Install
       # Install your program
-      run: cmake --install ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      run: sudo cmake --install ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
     - name: List
       run: ls -lR /usr/local
