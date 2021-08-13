@@ -2,17 +2,17 @@
       implicit none
       include "mpif.h"
 
-#define MT(TYPE) MPIWRAPPER_##TYPE
+#define MT(TYPE) WPI_##TYPE
 #define CONSTANT(TYPE, NAME) \
-      &     integer MPIWRAPPER_##NAME \
-      &     common /MPIWRAPPER_##NAME/ MPIWRAPPER_##NAME
+      &     integer WPI_##NAME \
+      &     common /WPI_##NAME/ WPI_##NAME
 #include "mpi-constants-f.inc"
 #undef CONSTANT
 #undef MT
 
-#define MT(TYPE) MPIWRAPPER_##TYPE
+#define MT(TYPE) WPI_##TYPE
 #define CONSTANT(TYPE, NAME) \
-      &     MPIWRAPPER_##NAME = MPI_##NAME
+      &     WPI_##NAME = MPI_##NAME
 #include "mpi-constants-f.inc"
 #undef CONSTANT
 #undef MT

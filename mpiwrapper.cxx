@@ -6,10 +6,10 @@
 
 // Wrap constants
 
-#define MT(TYPE) MPIwrapper_##TYPE
+#define MT(TYPE) WPI_##TYPE
 #define CONSTANT(TYPE, NAME)                                                   \
-  extern "C" const TYPE MPIWRAPPER_##NAME;                                     \
-  const TYPE MPIWRAPPER_##NAME = (TYPE)MPI_##NAME;
+  extern "C" const TYPE WPI_##NAME;                                            \
+  const TYPE WPI_##NAME = (TYPE)MPI_##NAME;
 #include "mpi-constants.inc"
 #undef CONSTANT
 #undef MT
@@ -19,18 +19,18 @@
 // Wrap functions
 
 // Define prototypes for all functions
-#define MT(TYPE) MPIwrapper_##TYPE
+#define MT(TYPE) WPI_##TYPE
 #define MP(TYPE) MPI_##TYPE
 #define FUNCTION(RTYPE, NAME, PTYPES, PNAMES)                                  \
-  extern "C" RTYPE MPIwrapper_##NAME PTYPES;
+  extern "C" RTYPE WPI_##NAME PTYPES;
 #include "mpi-functions.inc"
 #undef FUNCTION
 
 // Define implementations for most functions
-#define MT(TYPE) MPIwrapper_##TYPE
+#define MT(TYPE) WPI_##TYPE
 #define MP(TYPE) MPI_##TYPE
 #define FUNCTION(RTYPE, NAME, PTYPES, PNAMES)                                  \
-  extern "C" RTYPE MPIwrapper_##NAME PTYPES { return MPI_##NAME PNAMES; }
+  extern "C" RTYPE WPI_##NAME PTYPES { return MPI_##NAME PNAMES; }
 #define SKIP_MANUAL_FUNCTIONS
 #include "mpi-functions.inc"
 #undef SKIP_MANUAL_FUNCTIONS
@@ -244,18 +244,18 @@ extern "C" int MT(Get_version)(int *version, int *subversion) {
 #undef MT
 
 // Define prototypes for our Fortran wrapper functions
-#define MT(TYPE) MPIwrapper_##TYPE
+#define MT(TYPE) WPI_##TYPE
 #define FUNCTION(RTYPE, NAME, PTYPES, PNAMES)                                  \
-  extern "C" RTYPE mpiwrapper_##NAME##_ PTYPES;
+  extern "C" RTYPE wpi_##NAME##_ PTYPES;
 #include "mpi-functions-f.inc"
 #undef FUNCTION
 #undef MT
 
 // Implement most Fortran wrapper functions
-#define MT(TYPE) MPIwrapper_##TYPE
+#define MT(TYPE) WPI_##TYPE
 #define MP(TYPE) MPI_##TYPE
 #define FUNCTION(RTYPE, NAME, PTYPES, PNAMES)                                  \
-  extern "C" RTYPE mpiwrapper_##NAME##_ PTYPES { return mpi_##NAME##_ PNAMES; }
+  extern "C" RTYPE wpi_##NAME##_ PTYPES { return mpi_##NAME##_ PNAMES; }
 #define SKIP_MANUAL_FUNCTIONS
 #include "mpi-functions-f.inc"
 #undef SKIP_MANUAL_FUNCTIONS
