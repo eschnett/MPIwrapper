@@ -37,10 +37,11 @@ jobs:
       # is only required if you are using a single-configuration
       # generator such as make. See
       # https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B ${{github.workspace}}/build \
-               -DCMAKE_CXX_COMPILER=mpicxx \
-               -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-               -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/mpiwrapper-${{matrix.mpi}}
+      run: |
+        cmake -B ${{github.workspace}}/build \
+            -DCMAKE_CXX_COMPILER=mpicxx \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/mpiwrapper-${{matrix.mpi}}
 
     - name: Build
       # Build your program with the given configuration
@@ -56,11 +57,3 @@ jobs:
     - name: Install
       # Install your program
       run: cmake --install ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
-
-    # - name: Pack
-    #   run: tar czf ${{github.workspace}}/mpiwrapper-${{matrix.mpi}}.tar.gz -C ${{github.workspace}} mpiwrapper-${{matrix.mpi}}
-    # 
-    # - uses: actions/upload-artifact@v2
-    #   with:
-    #     name: libmpiwrapper-${{matrix.mpi}}
-    #     path: ${{github.workspace}}/mpiwrapper-${{matrix.mpi}}.tar.gz
