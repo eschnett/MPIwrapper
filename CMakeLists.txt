@@ -1,10 +1,10 @@
 #[[
-rm -rf build-openmpi ../MPIstuff-openmpi
-cmake -S . -B build-openmpi -G Ninja -DCMAKE_CXX_COMPILER=mpicxx-openmpi-gcc11 -DCMAKE_Fortran_COMPILER=mpifort-openmpi-gcc11 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff-openmpi
+rm -rf build-openmpi $HOME/src/c/MPIstuff/mpiwrapper-openmpi
+cmake -S . -B build-openmpi -G Ninja -DCMAKE_CXX_COMPILER=mpicxx-openmpi-gcc11 -DCMAKE_Fortran_COMPILER=mpifort-openmpi-gcc11 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-openmpi
 cmake --build build-openmpi && cmake --install build-openmpi
 
-rm -rf build-mpich ../MPIstuff-mpich
-cmake -S . -B build-mpich -G Ninja -DCMAKE_CXX_COMPILER=mpicxx-mpich-gcc10 -DCMAKE_Fortran_COMPILER=mpifort-mpich-gcc10 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff-mpich
+rm -rf build-mpich $HOME/src/c/MPIstuff/mpiwrapper-openmpi
+cmake -S . -B build-mpich -G Ninja -DCMAKE_CXX_COMPILER=mpicxx-mpich-gcc10 -DCMAKE_Fortran_COMPILER=mpifort-mpich-gcc10 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-mpich
 cmake --build build-mpich && cmake --install build-mpich
 
 
@@ -20,8 +20,9 @@ rm -rf build-intel ../MPIstuff-intel
 cmake -S . -B build-intel -G Ninja -DCMAKE_CXX_COMPILER=/cm/shared/apps/intel/mpi/2021.1.1/bin/mpicxx -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../MPIstuff-intel
 cmake --build build-intel && cmake --install build-intel
 module unload mpi
-
 ]]
+
+
 
 cmake_minimum_required(VERSION 3.12...3.20)
 project(
