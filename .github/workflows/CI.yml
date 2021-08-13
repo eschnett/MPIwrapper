@@ -41,7 +41,7 @@ jobs:
         cmake -B ${{github.workspace}}/build \
             -DCMAKE_CXX_COMPILER=mpicxx \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-            -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/mpiwrapper-${{matrix.mpi}}
+            -DCMAKE_INSTALL_PREFIX=$HOME/mpiwrapper-${{matrix.mpi}}
 
     - name: Build
       # Build your program with the given configuration
