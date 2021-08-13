@@ -163,10 +163,10 @@ typedef struct MPIwrapper_Status {
   mutable int MPI_ERROR;
 
   MPIwrapper_Status() = default;
-  MPIwrapper_Status(const MPI_Status &status_)
-      : MPI_SOURCE(status_.MPI_SOURCE), MPI_TAG(status_.MPI_TAG),
-        MPI_ERROR(status_.MPI_ERROR) {
-    wrapped.status = status_;
+  MPIwrapper_Status(const MPI_Status &status)
+      : MPI_SOURCE(status.MPI_SOURCE), MPI_TAG(status.MPI_TAG),
+        MPI_ERROR(status.MPI_ERROR) {
+    wrapped.status = status;
   }
   operator MPI_Status() const {
     wrapped.status.MPI_SOURCE = MPI_SOURCE;
@@ -184,40 +184,48 @@ typedef MPI_Status *MPI_StatusPtr;
 typedef const MPI_Status *MPI_const_StatusPtr;
 
 struct MPIwrapper_StatusPtr {
-  MPIwrapper_Status *status;
+  MPIwrapper_Status *wrapper_status;
 
   // We assume that the `MPI_Status` is actually an `MPIwrapper_Status`
-  MPIwrapper_StatusPtr(MPI_Status *status_)
-      : status((MPIwrapper_Status *)status_) {
-    if (status_ != MPI_STATUS_IGNORE && status_ != MPI_STATUSES_IGNORE) {
-      status->MPI_SOURCE = status->wrapped.status.MPI_SOURCE;
-      status->MPI_TAG = status->wrapped.status.MPI_TAG;
-      status->MPI_ERROR = status->wrapped.status.MPI_ERROR;
+  MPIwrapper_StatusPtr(MPI_Status *status)
+      : wrapper_status((MPIwrapper_Status *)status) {
+    if (status != MPI_STATUS_IGNORE && status != MPI_STATUSES_IGNORE) {
+      wrapper_status->MPI_SOURCE = status->MPI_SOURCE;
+      wrapper_status->MPI_TAG = status->MPI_TAG;
+      wrapper_status->MPI_ERROR = status->MPI_ERROR;
     }
   }
-  operator MPI_StatusPtr() { return (MPI_StatusPtr)status; }
+  operator MPI_StatusPtr() const {
+    MPI_Status *const status = (MPI_Status *)wrapper_status;
+    if (status != MPI_STATUS_IGNORE && status != MPI_STATUSES_IGNORE) {
+      status->MPI_SOURCE = wrapper_status->MPI_SOURCE;
+      status->MPI_TAG = wrapper_status->MPI_TAG;
+      status->MPI_ERROR = wrapper_status->MPI_ERROR;
+    }
+    return status;
+  }
 };
 
 struct MPIwrapper_const_StatusPtr {
-  const MPIwrapper_Status *status;
+  const MPIwrapper_Status *wrapper_status;
 
   // We assume that the `MPI_Status` is actually an `MPIwrapper_Status`
-  MPIwrapper_const_StatusPtr(const MPI_Status *status_)
-      : status((const MPIwrapper_Status *)status_) {
-    if (status_ != MPI_STATUS_IGNORE && status_ != MPI_STATUSES_IGNORE) {
-      status->MPI_SOURCE = status->wrapped.status.MPI_SOURCE;
-      status->MPI_TAG = status->wrapped.status.MPI_TAG;
-      status->MPI_ERROR = status->wrapped.status.MPI_ERROR;
+  MPIwrapper_const_StatusPtr(const MPI_Status *status)
+      : wrapper_status((const MPIwrapper_Status *)status) {
+    if (status != MPI_STATUS_IGNORE && status != MPI_STATUSES_IGNORE) {
+      wrapper_status->MPI_SOURCE = status->MPI_SOURCE;
+      wrapper_status->MPI_TAG = status->MPI_TAG;
+      wrapper_status->MPI_ERROR = status->MPI_ERROR;
     }
   }
-  operator MPI_const_StatusPtr() {
-    if (&status->wrapped.status != MPI_STATUS_IGNORE &&
-        &status->wrapped.status != MPI_STATUSES_IGNORE) {
-      status->wrapped.status.MPI_SOURCE = status->MPI_SOURCE;
-      status->wrapped.status.MPI_TAG = status->MPI_TAG;
-      status->wrapped.status.MPI_ERROR = status->MPI_ERROR;
+  operator MPI_const_StatusPtr() const {
+    const MPI_Status *const status = (const MPI_Status *)wrapper_status;
+    if (status != MPI_STATUS_IGNORE && status != MPI_STATUSES_IGNORE) {
+      const_cast<MPI_Status *>(status)->MPI_SOURCE = wrapper_status->MPI_SOURCE;
+      const_cast<MPI_Status *>(status)->MPI_TAG = wrapper_status->MPI_TAG;
+      const_cast<MPI_Status *>(status)->MPI_ERROR = wrapper_status->MPI_ERROR;
     }
-    return &status->wrapped.status;
+    return status;
   }
 };
 
