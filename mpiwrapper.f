@@ -1,0 +1,16 @@
+      subroutine mpiwrapper_export_fortran_constants
+      implicit none
+      include "mpif.h"
+
+      integer MPIWRAPPER_COMM_NULL
+      common /MPIWRAPPER_COMM_NULL/ MPIWRAPPER_COMM_NULL
+      integer MPIWRAPPER_COMM_SELF
+      common /MPIWRAPPER_COMM_SELF/ MPIWRAPPER_COMM_SELF
+      integer MPIWRAPPER_COMM_WORLD
+      common /MPIWRAPPER_COMM_WORLD/ MPIWRAPPER_COMM_WORLD
+      
+      MPIWRAPPER_COMM_NULL = MPIWRAPPER_COMM_NULL
+      MPIWRAPPER_COMM_SELF = MPIWRAPPER_COMM_SELF
+      MPIWRAPPER_COMM_WORLD = MPIWRAPPER_COMM_WORLD
+
+      end
