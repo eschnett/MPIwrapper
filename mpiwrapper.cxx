@@ -238,7 +238,7 @@ extern "C" int MT(Get_version)(int *version, int *subversion) {
 // Define prototypes for the MPI Fortran functions
 #define MT(TYPE) MPI_##TYPE
 #define FUNCTION(RTYPE, NAME, PTYPES, PNAMES)                                  \
-  extern "C" RTYPE mpi_##NAME PTYPES;
+  extern "C" RTYPE mpi_##NAME##_ PTYPES;
 #include "mpi-functions-f.inc"
 #undef FUNCTION
 #undef MT
@@ -246,7 +246,7 @@ extern "C" int MT(Get_version)(int *version, int *subversion) {
 // Define prototypes for our Fortran wrapper functions
 #define MT(TYPE) MPIwrapper_##TYPE
 #define FUNCTION(RTYPE, NAME, PTYPES, PNAMES)                                  \
-  extern "C" RTYPE mpiwrapper_##NAME PTYPES;
+  extern "C" RTYPE mpiwrapper_##NAME##_ PTYPES;
 #include "mpi-functions-f.inc"
 #undef FUNCTION
 #undef MT
@@ -255,7 +255,7 @@ extern "C" int MT(Get_version)(int *version, int *subversion) {
 #define MT(TYPE) MPIwrapper_##TYPE
 #define MP(TYPE) MPI_##TYPE
 #define FUNCTION(RTYPE, NAME, PTYPES, PNAMES)                                  \
-  extern "C" RTYPE mpiwrapper_##NAME PTYPES { return mpi_##NAME PNAMES; }
+  extern "C" RTYPE mpiwrapper_##NAME##_ PTYPES { return mpi_##NAME##_ PNAMES; }
 #define SKIP_MANUAL_FUNCTIONS
 #include "mpi-functions-f.inc"
 #undef SKIP_MANUAL_FUNCTIONS

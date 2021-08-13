@@ -1,0 +1,20 @@
+      subroutine mpiwrapper_export_fortran_constants
+      implicit none
+      include "mpif.h"
+
+#define MT(TYPE) MPIWRAPPER_##TYPE
+#define CONSTANT(TYPE, NAME) \
+      &     integer MPIWRAPPER_##NAME \
+      &     common /MPIWRAPPER_##NAME/ MPIWRAPPER_##NAME
+#include "mpi-constants-f.inc"
+#undef CONSTANT
+#undef MT
+
+#define MT(TYPE) MPIWRAPPER_##TYPE
+#define CONSTANT(TYPE, NAME) \
+      &     MPIWRAPPER_##NAME = MPI_##NAME
+#include "mpi-constants-f.inc"
+#undef CONSTANT
+#undef MT
+
+      end

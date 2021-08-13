@@ -34,6 +34,12 @@ set(CMAKE_CXX_STANDARD 11)
 
 find_package(MPI REQUIRED)
 
+add_custom_command(
+  OUTPUT mpiwrapper.f
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/fortran-cpp.sh ${CMAKE_CURRENT_SOURCE_DIR}/mpiwrapper.f.in mpiwrapper.f
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mpiwrapper.f.in ${CMAKE_CURRENT_SOURCE_DIR}/mpi-constants-f.inc
+  VERBATIM)
+
 add_library(mpiwrapper SHARED mpiwrapper.h mpiwrapper.cxx mpiwrapper.f)
 target_link_libraries(mpiwrapper PRIVATE MPI::MPI_CXX MPI::MPI_Fortran)
 
