@@ -195,10 +195,7 @@ struct MPIwrapper_StatusPtr {
       status->MPI_ERROR = status->wrapped.status.MPI_ERROR;
     }
   }
-  operator MPI_StatusPtr() {
-    assert(status);
-    return &status->wrapped.status;
-  }
+  operator MPI_StatusPtr() { return (MPI_StatusPtr)status; }
 };
 
 struct MPIwrapper_const_StatusPtr {
