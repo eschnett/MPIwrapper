@@ -42,7 +42,7 @@ add_custom_command(
   VERBATIM)
 
 add_library(mpiwrapper SHARED mpiwrapper.h mpiwrapper.cxx mpiwrapper.f)
-target_link_libraries(mpiwrapper PRIVATE MPI::MPI_CXX MPI::MPI_Fortran)
+target_link_libraries(mpiwrapper PUBLIC MPI::MPI_CXX MPI::MPI_Fortran)
 
 install(
   TARGETS mpiwrapper
