@@ -4,15 +4,15 @@
 
 #define MT(TYPE) WPI_##TYPE
 #define CONSTANT(TYPE, NAME) \
-      &     integer WPI_##NAME \
-      &     common /WPI_##NAME/ WPI_##NAME
+      [n]integer WPI_##NAME \
+      [n]common /WPI_##NAME/ [c]WPI_##NAME
 #include "mpi-constants-f.inc"
 #undef CONSTANT
 #undef MT
 
 #define MT(TYPE) WPI_##TYPE
 #define CONSTANT(TYPE, NAME) \
-      &     WPI_##NAME = MPI_##NAME
+      [n]WPI_##NAME = MPI_##NAME
 #include "mpi-constants-f.inc"
 #undef CONSTANT
 #undef MT
