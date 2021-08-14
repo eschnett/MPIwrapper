@@ -220,6 +220,33 @@ extern "C" int MT(Alltoallw)(const void *sendbuf, const int sendcounts[],
   return ierr;
 }
 
+// 5.12 Nonblocking Collective Operations
+
+extern "C" int MT(Ialltoallw)(const void *sendbuf, const int sendcounts[],
+                              const int sdispls[],
+                              const MT(Datatype) sendtypes[], void *recvbuf,
+                              const int recvcounts[], const int rdispls[],
+                              const MT(Datatype) recvtypes[], MT(Comm) comm,
+                              MT(Request) * request) {
+  if (sizeof(MP(Datatype)) == sizeof(MT(Datatype)))
+    return MP(Ialltoallw)(sendbuf, sendcounts, sdispls,
+                          (MP(Datatype) *)sendtypes, recvbuf, recvcounts,
+                          rdispls, (const MP(Datatype) *)recvtypes,
+                          (MP(Comm))comm, (MP(Request) *)request);
+  int comm_size;
+  MPI_Comm_size((MP(Comm))comm, &comm_size);
+  std::vector<MP(Datatype)> stypes(comm_size);
+  for (int i = 0; i < comm_size; ++i)
+    stypes[i] = (MP(Datatype))sendtypes[i];
+  std::vector<MP(Datatype)> rtypes(comm_size);
+  for (int i = 0; i < comm_size; ++i)
+    rtypes[i] = (MP(Datatype))recvtypes[i];
+  const int ierr = MP(Ialltoallw)(sendbuf, sendcounts, sdispls, stypes.data(),
+                                  recvbuf, recvcounts, rdispls, rtypes.data(),
+                                  (MP(Comm))comm, (MP(Request) *)request);
+  return ierr;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 extern "C" int MT(Get_version)(int *version, int *subversion) {
