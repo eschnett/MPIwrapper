@@ -8,8 +8,8 @@
 
 #define MT(TYPE) WPI_##TYPE
 #define CONSTANT(TYPE, NAME)                                                   \
-  extern "C" const TYPE WPI_##NAME;                                            \
-  const TYPE WPI_##NAME = (TYPE)MPI_##NAME;
+  extern "C" TYPE const WPI_##NAME;                                            \
+  TYPE const WPI_##NAME = (TYPE)MPI_##NAME;
 #include "mpi-constants.inc"
 #undef CONSTANT
 #undef MT
