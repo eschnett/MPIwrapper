@@ -228,6 +228,26 @@ extern "C" int MT(Get_version)(int *version, int *subversion) {
   return MPI_SUCCESS;
 }
 
+extern "C" int MT(Comm_spawn_multiple)(int count, char *array_of_commands[],
+                                       char **array_of_argv[],
+                                       const int array_of_maxprocs[],
+                                       const MT(Info) array_of_info[], int root,
+                                       MT(Comm) comm, MT(Comm) * intercomm,
+                                       int array_of_errcodes[]) {
+  if (sizeof(MP(Info)) == sizeof(MT(Info)))
+    return MP(Comm_spawn_multiple)(
+        count, array_of_commands, array_of_argv, array_of_maxprocs,
+        (const MP(Info) *)array_of_info, root, (MP(Comm))comm,
+        (MP(Comm) *)intercomm, array_of_errcodes);
+  std::vector<MP(Info)> infos(count);
+  for (int i = 0; i < count; ++i)
+    infos[i] = (MP(Info))array_of_info[i];
+  const int ierr = MP(Comm_spawn_multiple)(
+      count, array_of_commands, array_of_argv, array_of_maxprocs, infos.data(),
+      root, (MP(Comm))comm, (MP(Comm) *)intercomm, array_of_errcodes);
+  return ierr;
+}
+
 #undef MT
 #undef MP
 
