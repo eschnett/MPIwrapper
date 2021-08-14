@@ -1,5 +1,6 @@
 #include "mpiwrapper.h"
 
+#include <cstdarg>
 #include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -301,7 +302,7 @@ extern "C" int MT(Ineighbor_alltoallw)(
   return ierr;
 }
 
-////////////////////////////////////////////////////////////////////////////////
+// 8.1 Implementation Information
 
 extern "C" int MT(Get_version)(int *version, int *subversion) {
   // TODO: Synchronize with MPI_VERSION and MPI_SUBVERSION
@@ -309,6 +310,8 @@ extern "C" int MT(Get_version)(int *version, int *subversion) {
   *subversion = 1;
   return MPI_SUCCESS;
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 extern "C" int MT(Comm_spawn_multiple)(int count, char *array_of_commands[],
                                        char **array_of_argv[],
@@ -329,6 +332,9 @@ extern "C" int MT(Comm_spawn_multiple)(int count, char *array_of_commands[],
       root, (MP(Comm))comm, (MP(Comm) *)intercomm, array_of_errcodes);
   return ierr;
 }
+
+// There is no way to forward varargs arguments. Should we return an error here?
+extern "C" int MT(Pcontrol)(const int level, ...) { return MPI_SUCCESS; }
 
 #undef MT
 #undef MP
