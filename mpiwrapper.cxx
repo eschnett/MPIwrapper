@@ -304,6 +304,7 @@ extern "C" int MT(Ineighbor_alltoallw)(
 ////////////////////////////////////////////////////////////////////////////////
 
 extern "C" int MT(Get_version)(int *version, int *subversion) {
+  // TODO: Synchronize with MPI_VERSION and MPI_SUBVERSION
   *version = 3;
   *subversion = 1;
   return MPI_SUCCESS;
