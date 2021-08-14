@@ -708,6 +708,21 @@ FUNCTION(int, Type_delete_attr, (MT(Datatype) type, int type_keyval),
 
 // note: i checked the standard; we are complete from the top to here
 
+// 6.8 Naming Objects
+FUNCTION(int, Comm_set_name, (MT(Comm) comm, const char *comm_name),
+         ((MP(Comm))comm, comm_name))
+FUNCTION(int, Comm_get_name, (MT(Comm) comm, char *comm_name, int *resultlen),
+         ((MP(Comm))comm, comm_name, resultlen))
+FUNCTION(int, Type_set_name, (MT(Datatype) type, const char *type_name),
+         ((MP(Datatype))type, type_name))
+FUNCTION(int, Type_get_name,
+         (MT(Datatype) type, char *type_name, int *resultlen),
+         ((MP(Datatype))type, type_name, resultlen))
+FUNCTION(int, Win_set_name, (MT(Win) win, const char *win_name),
+         ((MP(Win))win, win_name))
+FUNCTION(int, Win_get_name, (MT(Win) win, char *win_name, int *resultlen),
+         ((MP(Win))win, win_name, resultlen))
+
 // 13.2 File Manipulation
 FUNCTION(int, File_open,
          (MT(Comm) comm, const char *filename, int amode, MT(Info) info,
