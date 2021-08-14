@@ -247,6 +247,60 @@ extern "C" int MT(Ialltoallw)(const void *sendbuf, const int sendcounts[],
   return ierr;
 }
 
+// 7.6 Neighborhood Collective Communication on Procerss Topologies
+
+extern "C" int MT(Neighbor_alltoallw)(
+    const void *sendbuf, const int sendcounts[], const MT(Aint) sdispls[],
+    const MT(Datatype) sendtypes[], void *recvbuf, const int recvcounts[],
+    const MT(Aint) rdispls[], const MT(Datatype) recvtypes[], MT(Comm) comm) {
+  if (sizeof(MP(Datatype)) == sizeof(MT(Datatype)))
+    return MP(Neighbor_alltoallw)(
+        sendbuf, sendcounts, (const MP(Aint) *)sdispls,
+        (const MP(Datatype) *)sendtypes, recvbuf, recvcounts,
+        (const MP(Aint) *)rdispls, (const MP(Datatype) *)recvtypes,
+        (MP(Comm))comm);
+  int comm_size;
+  MPI_Comm_size((MP(Comm))comm, &comm_size);
+  std::vector<MP(Datatype)> stypes(comm_size);
+  for (int i = 0; i < comm_size; ++i)
+    stypes[i] = (MP(Datatype))sendtypes[i];
+  std::vector<MP(Datatype)> rtypes(comm_size);
+  for (int i = 0; i < comm_size; ++i)
+    rtypes[i] = (MP(Datatype))recvtypes[i];
+  const int ierr = MP(Neighbor_alltoallw)(
+      sendbuf, sendcounts, (const MP(Aint) *)sdispls, stypes.data(), recvbuf,
+      recvcounts, (const MP(Aint) *)rdispls, rtypes.data(), (MP(Comm))comm);
+  return ierr;
+}
+
+// 7.7 Nonblocking Neighborhood Communication on Process Topologies
+
+extern "C" int MT(Ineighbor_alltoallw)(
+    const void *sendbuf, const int sendcounts[], const MT(Aint) sdispls[],
+    const MT(Datatype) sendtypes[], void *recvbuf, const int recvcounts[],
+    const MT(Aint) rdispls[], const MT(Datatype) recvtypes[], MT(Comm) comm,
+    MT(Request) * request) {
+  if (sizeof(MP(Datatype)) == sizeof(MT(Datatype)))
+    return MP(Ineighbor_alltoallw)(
+        sendbuf, sendcounts, (const MP(Aint) *)sdispls,
+        (const MP(Datatype) *)sendtypes, recvbuf, recvcounts,
+        (const MP(Aint) *)rdispls, (const MP(Datatype) *)recvtypes,
+        (MP(Comm))comm, (MP(Request) *)request);
+  int comm_size;
+  MPI_Comm_size((MP(Comm))comm, &comm_size);
+  std::vector<MP(Datatype)> stypes(comm_size);
+  for (int i = 0; i < comm_size; ++i)
+    stypes[i] = (MP(Datatype))sendtypes[i];
+  std::vector<MP(Datatype)> rtypes(comm_size);
+  for (int i = 0; i < comm_size; ++i)
+    rtypes[i] = (MP(Datatype))recvtypes[i];
+  const int ierr = MP(Ineighbor_alltoallw)(
+      sendbuf, sendcounts, (const MP(Aint) *)sdispls, stypes.data(), recvbuf,
+      recvcounts, (const MP(Aint) *)rdispls, rtypes.data(), (MP(Comm))comm,
+      (MP(Request) *)request);
+  return ierr;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 extern "C" int MT(Get_version)(int *version, int *subversion) {
