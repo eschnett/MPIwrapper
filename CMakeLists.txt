@@ -3,7 +3,7 @@ rm -rf build-openmpi $HOME/src/c/MPIstuff/mpiwrapper-openmpi
 cmake -S . -B build-openmpi -G Ninja -DCMAKE_CXX_COMPILER=mpicxx-openmpi-gcc11 -DCMAKE_Fortran_COMPILER=mpifort-openmpi-gcc11 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-openmpi
 cmake --build build-openmpi && cmake --install build-openmpi
 
-rm -rf build-mpich $HOME/src/c/MPIstuff/mpiwrapper-openmpi
+rm -rf build-mpich $HOME/src/c/MPIstuff/mpiwrapper-mpich
 cmake -S . -B build-mpich -G Ninja -DCMAKE_CXX_COMPILER=mpicxx-mpich-gcc10 -DCMAKE_Fortran_COMPILER=mpifort-mpich-gcc10 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-mpich
 cmake --build build-mpich && cmake --install build-mpich
 
