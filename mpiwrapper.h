@@ -3,6 +3,7 @@
 
 #include <mpi.h>
 
+#include <assert.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -16,16 +17,20 @@
 // Simple types
 
 typedef intptr_t WPI_Aint;
-static_assert(sizeof(MPI_Aint) == sizeof(WPI_Aint));
+static_assert(sizeof(MPI_Aint) == sizeof(WPI_Aint), "");
+static_assert(alignof(MPI_Aint) == alignof(WPI_Aint), "");
 
 typedef int64_t WPI_Count;
-static_assert(sizeof(MPI_Count) == sizeof(WPI_Count));
+static_assert(sizeof(MPI_Count) == sizeof(WPI_Count), "");
+static_assert(alignof(MPI_Count) == alignof(WPI_Count), "");
 
 typedef int WPI_Fint;
-static_assert(sizeof(MPI_Fint) == sizeof(WPI_Fint));
+static_assert(sizeof(MPI_Fint) == sizeof(WPI_Fint), "");
+static_assert(alignof(MPI_Fint) == alignof(WPI_Fint), "");
 
 typedef int64_t WPI_Offset;
-static_assert(sizeof(MPI_Offset) == sizeof(WPI_Offset));
+static_assert(sizeof(MPI_Offset) == sizeof(WPI_Offset), "");
+static_assert(alignof(MPI_Offset) == alignof(WPI_Offset), "");
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -42,13 +47,14 @@ template <typename MPI_T> struct alignas(alignof(uintptr_t)) WPI_Handle {
 };
 
 template <typename MPI_T> struct WPI_HandlePtr {
-  WPI_Handle<MPI_T> *whandleptr;
+  WPI_Handle<MPI_T> *wrapped_handleptr;
 
   WPI_HandlePtr() = default;
-  WPI_HandlePtr(MPI_T *handleptr) : whandleptr((WPI_Handle<MPI_T> *)handleptr) {
-    whandleptr->pad();
+  WPI_HandlePtr(MPI_T *handleptr)
+      : wrapped_handleptr((WPI_Handle<MPI_T> *)handleptr) {
+    wrapped_handleptr->pad();
   }
-  operator MPI_T *() const { return &whandleptr->handle; }
+  operator MPI_T *() const { return &wrapped_handleptr->handle; }
 
   // These checks should logically be in `WPI_Handle`. However, C++ doesn't
   // allow them there because the type `WPI_Handle` isn't complete yet, so we
@@ -130,65 +136,78 @@ typedef struct WPI_Status {
   mutable int MPI_SOURCE;
   mutable int MPI_TAG;
   mutable int MPI_ERROR;
+  mutable bool is_ignore;
 
   WPI_Status() = default;
-  WPI_Status(const MPI_Status &status)
-      : MPI_SOURCE(status.MPI_SOURCE), MPI_TAG(status.MPI_TAG),
-        MPI_ERROR(status.MPI_ERROR) {
+  WPI_Status(const MPI_Status &status) {
+    assert(this != MPI_STATUS_IGNORE && this != MPI_STATUSES_IGNORE);
     wrapped.status = status;
+    MPI_SOURCE = wrapped.status.MPI_SOURCE;
+    MPI_TAG = wrapped.status.MPI_TAG;
+    MPI_ERROR = wrapped.status.MPI_ERROR;
   }
   operator MPI_Status() const {
+    assert(this != MPI_STATUS_IGNORE && this != MPI_STATUSES_IGNORE);
     wrapped.status.MPI_SOURCE = MPI_SOURCE;
     wrapped.status.MPI_TAG = MPI_TAG;
     wrapped.status.MPI_ERROR = MPI_ERROR;
     return wrapped.status;
   }
-
-  void to_wrapper() const {
-    if (&wrapped.status != MPI_STATUS_IGNORE &&
-        &wrapped.status != MPI_STATUSES_IGNORE) {
-      MPI_SOURCE = wrapped.status.MPI_SOURCE;
-      MPI_TAG = wrapped.status.MPI_TAG;
-      MPI_ERROR = wrapped.status.MPI_ERROR;
-    }
-  }
-  void from_wrapper() const {
-    if (&wrapped.status != MPI_STATUS_IGNORE &&
-        &wrapped.status != MPI_STATUSES_IGNORE) {
-      wrapped.status.MPI_SOURCE = MPI_SOURCE;
-      wrapped.status.MPI_TAG = MPI_TAG;
-      wrapped.status.MPI_ERROR = MPI_ERROR;
-    }
-  }
 } WPI_Status;
 
-static_assert(std::is_pod<WPI_Status>::value);
-static_assert(sizeof WPI_Status::wrapped >= sizeof(MPI_Status));
-static_assert(WPI_STATUS_SIZE * sizeof(WPI_Fint) == sizeof(WPI_Status));
+static_assert(sizeof WPI_Status::wrapped >= sizeof(MPI_Status), "");
+static_assert(alignof WPI_Status::wrapped >= alignof(MPI_Status), "");
+static_assert(sizeof(WPI_Status) >= sizeof(MPI_Status), "");
+static_assert(alignof(WPI_Status) >= alignof(MPI_Status), "");
+static_assert(WPI_STATUS_SIZE * sizeof(WPI_Fint) == sizeof(WPI_Status), "");
+static_assert(std::is_pod<WPI_Status>::value, "");
 
 typedef WPI_Status *WPI_StatusPtr;
 typedef const WPI_Status *WPI_const_StatusPtr;
 
 struct MPI_StatusPtr {
-  WPI_Status *wrapper_status;
+  WPI_Status *statusptr;
 
-  MPI_StatusPtr(WPI_Status *wrapper_status_) : wrapper_status(wrapper_status_) {
-    wrapper_status->from_wrapper();
+  MPI_StatusPtr(WPI_Status *statusptr_) : statusptr(statusptr_) {}
+  ~MPI_StatusPtr() {
+    if ((MPI_Status *)statusptr != MPI_STATUS_IGNORE &&
+        (MPI_Status *)statusptr != MPI_STATUSES_IGNORE) {
+      statusptr->MPI_SOURCE = statusptr->wrapped.status.MPI_SOURCE;
+      statusptr->MPI_TAG = statusptr->wrapped.status.MPI_TAG;
+      statusptr->MPI_ERROR = statusptr->wrapped.status.MPI_ERROR;
+    }
   }
-  ~MPI_StatusPtr() { wrapper_status->to_wrapper(); }
-  operator MPI_Status *() const { return &wrapper_status->wrapped.status; }
+  operator MPI_Status *() const {
+    if ((MPI_Status *)statusptr == MPI_STATUS_IGNORE ||
+        (MPI_Status *)statusptr == MPI_STATUSES_IGNORE)
+      return MPI_STATUS_IGNORE;
+    statusptr->wrapped.status.MPI_SOURCE = statusptr->MPI_SOURCE;
+    statusptr->wrapped.status.MPI_TAG = statusptr->MPI_TAG;
+    statusptr->wrapped.status.MPI_ERROR = statusptr->MPI_ERROR;
+    return &statusptr->wrapped.status;
+  }
 };
 
 struct MPI_const_StatusPtr {
-  const WPI_Status *wrapper_status;
+  const WPI_Status *statusptr;
 
-  MPI_const_StatusPtr(const WPI_Status *wrapper_status_)
-      : wrapper_status(wrapper_status_) {
-    wrapper_status->from_wrapper();
+  MPI_const_StatusPtr(const WPI_Status *statusptr_) : statusptr(statusptr_) {}
+  ~MPI_const_StatusPtr() {
+    if ((const MPI_Status *)statusptr != MPI_STATUS_IGNORE &&
+        (const MPI_Status *)statusptr != MPI_STATUSES_IGNORE) {
+      statusptr->MPI_SOURCE = statusptr->wrapped.status.MPI_SOURCE;
+      statusptr->MPI_TAG = statusptr->wrapped.status.MPI_TAG;
+      statusptr->MPI_ERROR = statusptr->wrapped.status.MPI_ERROR;
+    }
   }
-  ~MPI_const_StatusPtr() { wrapper_status->to_wrapper(); }
   operator const MPI_Status *() const {
-    return &wrapper_status->wrapped.status;
+    if ((const MPI_Status *)statusptr == MPI_STATUS_IGNORE ||
+        (const MPI_Status *)statusptr == MPI_STATUSES_IGNORE)
+      return MPI_STATUS_IGNORE;
+    statusptr->wrapped.status.MPI_SOURCE = statusptr->MPI_SOURCE;
+    statusptr->wrapped.status.MPI_TAG = statusptr->MPI_TAG;
+    statusptr->wrapped.status.MPI_ERROR = statusptr->MPI_ERROR;
+    return &statusptr->wrapped.status;
   }
 };
 
