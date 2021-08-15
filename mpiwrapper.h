@@ -4,6 +4,7 @@
 #include <mpi.h>
 
 #include <stdint.h>
+#include <string.h>
 
 #include <type_traits>
 
@@ -14,7 +15,7 @@
 
 // Simple types
 
-typedef uintptr_t WPI_Aint;
+typedef intptr_t WPI_Aint;
 static_assert(sizeof(MPI_Aint) == sizeof(WPI_Aint));
 
 typedef int64_t WPI_Count;
@@ -30,105 +31,74 @@ static_assert(sizeof(MPI_Offset) == sizeof(WPI_Offset));
 
 // Handles
 
-union WPI_Comm {
-  MPI_Comm comm;
-  uintptr_t padding;
+template <typename MPI_T> struct alignas(alignof(uintptr_t)) WPI_Handle {
+  MPI_T handle;
+  uint8_t padding[sizeof(uintptr_t) - sizeof(MPI_T)];
+  void pad() { memset(padding, 0, sizeof padding); }
 
-  WPI_Comm() = default;
-  WPI_Comm(MPI_Comm comm_) : comm(comm_) {}
-  operator MPI_Comm() const { return comm; }
+  WPI_Handle() = default;
+  WPI_Handle(MPI_T handle_) : handle(handle_) { pad(); }
+  operator MPI_T() const { return handle; }
 };
-static_assert(sizeof(MPI_Comm) <= sizeof(WPI_Comm));
 
-union WPI_Datatype {
-  MPI_Datatype datatype;
-  uintptr_t padding;
+template <typename MPI_T> struct WPI_HandlePtr {
+  WPI_Handle<MPI_T> *whandleptr;
 
-  WPI_Datatype() = default;
-  WPI_Datatype(MPI_Datatype datatype_) : datatype(datatype_) {}
-  operator MPI_Datatype() const { return datatype; }
+  WPI_HandlePtr() = default;
+  WPI_HandlePtr(MPI_T *handleptr) : whandleptr((WPI_Handle<MPI_T> *)handleptr) {
+    whandleptr->pad();
+  }
+  operator MPI_T *() const { return &whandleptr->handle; }
+
+  // These checks should logically be in `WPI_Handle`. However, C++ doesn't
+  // allow them there because the type `WPI_Handle` isn't complete yet, so we
+  // put them here.
+  static_assert(sizeof(MPI_T) <= sizeof(WPI_Handle<MPI_T>), "");
+  static_assert(alignof(MPI_T) <= alignof(WPI_Handle<MPI_T>), "");
+  static_assert(sizeof(WPI_Handle<MPI_T>) == sizeof(uintptr_t), "");
+  static_assert(alignof(WPI_Handle<MPI_T>) == alignof(uintptr_t), "");
+  static_assert(std::is_pod<WPI_Handle<MPI_T>>::value, "");
 };
-static_assert(sizeof(MPI_Datatype) <= sizeof(WPI_Datatype));
 
-union WPI_Errhandler {
-  MPI_Errhandler errhandler;
-  uintptr_t padding;
+typedef MPI_Comm *MPI_CommPtr;
+typedef WPI_Handle<MPI_Comm> WPI_Comm;
+typedef WPI_HandlePtr<MPI_Comm> WPI_CommPtr;
 
-  WPI_Errhandler() = default;
-  WPI_Errhandler(MPI_Errhandler errhandler_) : errhandler(errhandler_) {}
-  operator MPI_Errhandler() const { return errhandler; }
-};
-static_assert(sizeof(MPI_Errhandler) <= sizeof(WPI_Errhandler));
+typedef MPI_Datatype *MPI_DatatypePtr;
+typedef WPI_Handle<MPI_Datatype> WPI_Datatype;
+typedef WPI_HandlePtr<MPI_Datatype> WPI_DatatypePtr;
 
-union WPI_File {
-  MPI_File file;
-  uintptr_t padding;
+typedef MPI_Errhandler *MPI_ErrhandlerPtr;
+typedef WPI_Handle<MPI_Errhandler> WPI_Errhandler;
+typedef WPI_HandlePtr<MPI_Errhandler> WPI_ErrhandlerPtr;
 
-  WPI_File() = default;
-  WPI_File(MPI_File file_) : file(file_) {}
-  operator MPI_File() const { return file; }
-};
-static_assert(sizeof(MPI_File) <= sizeof(WPI_File));
+typedef MPI_File *MPI_FilePtr;
+typedef WPI_Handle<MPI_File> WPI_File;
+typedef WPI_HandlePtr<MPI_File> WPI_FilePtr;
 
-union WPI_Group {
-  MPI_Group group;
-  uintptr_t padding;
+typedef MPI_Group *MPI_GroupPtr;
+typedef WPI_Handle<MPI_Group> WPI_Group;
+typedef WPI_HandlePtr<MPI_Group> WPI_GroupPtr;
 
-  WPI_Group() = default;
-  WPI_Group(MPI_Group group_) : group(group_) {}
-  operator MPI_Group() const { return group; }
-};
-static_assert(sizeof(MPI_Group) <= sizeof(WPI_Group));
+typedef MPI_Info *MPI_InfoPtr;
+typedef WPI_Handle<MPI_Info> WPI_Info;
+typedef WPI_HandlePtr<MPI_Info> WPI_InfoPtr;
 
-union WPI_Info {
-  MPI_Info info;
-  uintptr_t padding;
+typedef MPI_Message *MPI_MessagePtr;
+typedef WPI_Handle<MPI_Message> WPI_Message;
+typedef WPI_HandlePtr<MPI_Message> WPI_MessagePtr;
 
-  WPI_Info() = default;
-  WPI_Info(MPI_Info info_) : info(info_) {}
-  operator MPI_Info() const { return info; }
-};
-static_assert(sizeof(MPI_Info) <= sizeof(WPI_Info));
+typedef MPI_Op *MPI_OpPtr;
+typedef WPI_Handle<MPI_Op> WPI_Op;
+typedef WPI_HandlePtr<MPI_Op> WPI_OpPtr;
 
-union WPI_Message {
-  MPI_Message message;
-  uintptr_t padding;
+typedef MPI_Request *MPI_RequestPtr;
+typedef WPI_Handle<MPI_Request> WPI_Request;
+typedef WPI_HandlePtr<MPI_Request> WPI_RequestPtr;
 
-  WPI_Message() = default;
-  WPI_Message(MPI_Message message_) : message(message_) {}
-  operator MPI_Message() const { return message; }
-};
-static_assert(sizeof(MPI_Message) <= sizeof(WPI_Message));
-
-union WPI_Op {
-  MPI_Op op;
-  uintptr_t padding;
-
-  WPI_Op() = default;
-  WPI_Op(MPI_Op op_) : op(op_) {}
-  operator MPI_Op() const { return op; }
-};
-static_assert(sizeof(MPI_Op) <= sizeof(WPI_Op));
-
-union WPI_Request {
-  MPI_Request request;
-  uintptr_t padding;
-
-  WPI_Request() = default;
-  WPI_Request(MPI_Request request_) : request(request_) {}
-  operator MPI_Request() const { return request; }
-};
-static_assert(sizeof(MPI_Request) <= sizeof(WPI_Request));
-
-union WPI_Win {
-  MPI_Win win;
-  uintptr_t padding;
-
-  WPI_Win() = default;
-  WPI_Win(MPI_Win win_) : win(win_) {}
-  operator MPI_Win() const { return win; }
-};
-static_assert(sizeof(MPI_Win) <= sizeof(WPI_Win));
+typedef MPI_Win *MPI_WinPtr;
+typedef WPI_Handle<MPI_Win> WPI_Win;
+typedef WPI_HandlePtr<MPI_Win> WPI_WinPtr;
 
 ////////////////////////////////////////////////////////////////////////////////
 

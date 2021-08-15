@@ -3,6 +3,10 @@
 #include <cstdarg>
 #include <vector>
 
+// TODO: Remove these
+WPI_Comm comm_m2w(MPI_Comm comm) { return WPI_Comm(comm); }
+MPI_Comm comm_w2m(WPI_Comm comm) { return (MPI_Comm)comm; }
+
 ////////////////////////////////////////////////////////////////////////////////
 
 // Wrap constants
@@ -162,17 +166,17 @@ extern "C" int MT(Type_create_struct)(int count,
                                       const int array_of_blocklengths[],
                                       const MT(Aint) array_of_displacements[],
                                       const MT(Datatype) array_of_types[],
-                                      MT(Datatype) * newtype) {
+                                      MT(DatatypePtr) newtype) {
   if (sizeof(MP(Datatype)) == sizeof(MT(Datatype)))
     return MP(Type_create_struct)(
         count, array_of_blocklengths, (const MP(Aint) *)array_of_displacements,
-        (const MP(Datatype) *)array_of_types, (MP(Datatype) *)newtype);
+        (const MP(Datatype) *)array_of_types, (MP(DatatypePtr))newtype);
   std::vector<MP(Datatype)> types(count);
   for (int i = 0; i < count; ++i)
     types[i] = (MP(Datatype))array_of_types[i];
   const int ierr = MP(Type_create_struct)(
       count, array_of_blocklengths, (const MP(Aint) *)array_of_displacements,
-      types.data(), (MP(Datatype) *)newtype);
+      types.data(), (MP(DatatypePtr))newtype);
   return ierr;
 }
 
@@ -228,12 +232,12 @@ extern "C" int MT(Ialltoallw)(const void *sendbuf, const int sendcounts[],
                               const MT(Datatype) sendtypes[], void *recvbuf,
                               const int recvcounts[], const int rdispls[],
                               const MT(Datatype) recvtypes[], MT(Comm) comm,
-                              MT(Request) * request) {
+                              MT(RequestPtr) request) {
   if (sizeof(MP(Datatype)) == sizeof(MT(Datatype)))
     return MP(Ialltoallw)(sendbuf, sendcounts, sdispls,
                           (MP(Datatype) *)sendtypes, recvbuf, recvcounts,
                           rdispls, (const MP(Datatype) *)recvtypes,
-                          (MP(Comm))comm, (MP(Request) *)request);
+                          (MP(Comm))comm, (MP(RequestPtr))request);
   int comm_size;
   MPI_Comm_size((MP(Comm))comm, &comm_size);
   std::vector<MP(Datatype)> stypes(comm_size);
@@ -244,7 +248,7 @@ extern "C" int MT(Ialltoallw)(const void *sendbuf, const int sendcounts[],
     rtypes[i] = (MP(Datatype))recvtypes[i];
   const int ierr = MP(Ialltoallw)(sendbuf, sendcounts, sdispls, stypes.data(),
                                   recvbuf, recvcounts, rdispls, rtypes.data(),
-                                  (MP(Comm))comm, (MP(Request) *)request);
+                                  (MP(Comm))comm, (MP(RequestPtr))request);
   return ierr;
 }
 
@@ -280,13 +284,13 @@ extern "C" int MT(Ineighbor_alltoallw)(
     const void *sendbuf, const int sendcounts[], const MT(Aint) sdispls[],
     const MT(Datatype) sendtypes[], void *recvbuf, const int recvcounts[],
     const MT(Aint) rdispls[], const MT(Datatype) recvtypes[], MT(Comm) comm,
-    MT(Request) * request) {
+    MT(RequestPtr) request) {
   if (sizeof(MP(Datatype)) == sizeof(MT(Datatype)))
     return MP(Ineighbor_alltoallw)(
         sendbuf, sendcounts, (const MP(Aint) *)sdispls,
         (const MP(Datatype) *)sendtypes, recvbuf, recvcounts,
         (const MP(Aint) *)rdispls, (const MP(Datatype) *)recvtypes,
-        (MP(Comm))comm, (MP(Request) *)request);
+        (MP(Comm))comm, (MP(RequestPtr))request);
   int comm_size;
   MPI_Comm_size((MP(Comm))comm, &comm_size);
   std::vector<MP(Datatype)> stypes(comm_size);
@@ -298,7 +302,7 @@ extern "C" int MT(Ineighbor_alltoallw)(
   const int ierr = MP(Ineighbor_alltoallw)(
       sendbuf, sendcounts, (const MP(Aint) *)sdispls, stypes.data(), recvbuf,
       recvcounts, (const MP(Aint) *)rdispls, rtypes.data(), (MP(Comm))comm,
-      (MP(Request) *)request);
+      (MP(RequestPtr))request);
   return ierr;
 }
 
@@ -317,19 +321,19 @@ extern "C" int MT(Comm_spawn_multiple)(int count, char *array_of_commands[],
                                        char **array_of_argv[],
                                        const int array_of_maxprocs[],
                                        const MT(Info) array_of_info[], int root,
-                                       MT(Comm) comm, MT(Comm) * intercomm,
+                                       MT(Comm) comm, MT(CommPtr) intercomm,
                                        int array_of_errcodes[]) {
   if (sizeof(MP(Info)) == sizeof(MT(Info)))
     return MP(Comm_spawn_multiple)(
         count, array_of_commands, array_of_argv, array_of_maxprocs,
         (const MP(Info) *)array_of_info, root, (MP(Comm))comm,
-        (MP(Comm) *)intercomm, array_of_errcodes);
+        (MP(CommPtr))intercomm, array_of_errcodes);
   std::vector<MP(Info)> infos(count);
   for (int i = 0; i < count; ++i)
     infos[i] = (MP(Info))array_of_info[i];
   const int ierr = MP(Comm_spawn_multiple)(
       count, array_of_commands, array_of_argv, array_of_maxprocs, infos.data(),
-      root, (MP(Comm))comm, (MP(Comm) *)intercomm, array_of_errcodes);
+      root, (MP(Comm))comm, (MP(CommPtr))intercomm, array_of_errcodes);
   return ierr;
 }
 
