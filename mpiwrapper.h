@@ -140,14 +140,16 @@ typedef struct WPI_Status {
 
   WPI_Status() = default;
   WPI_Status(const MPI_Status &status) {
-    assert(this != MPI_STATUS_IGNORE && this != MPI_STATUSES_IGNORE);
+    assert((const MPI_Status *)this != MPI_STATUS_IGNORE &&
+           (const MPI_Status *)this != MPI_STATUSES_IGNORE);
     wrapped.status = status;
     MPI_SOURCE = wrapped.status.MPI_SOURCE;
     MPI_TAG = wrapped.status.MPI_TAG;
     MPI_ERROR = wrapped.status.MPI_ERROR;
   }
   operator MPI_Status() const {
-    assert(this != MPI_STATUS_IGNORE && this != MPI_STATUSES_IGNORE);
+    assert((const MPI_Status *)this != MPI_STATUS_IGNORE &&
+           (const MPI_Status *)this != MPI_STATUSES_IGNORE);
     wrapped.status.MPI_SOURCE = MPI_SOURCE;
     wrapped.status.MPI_TAG = MPI_TAG;
     wrapped.status.MPI_ERROR = MPI_ERROR;
