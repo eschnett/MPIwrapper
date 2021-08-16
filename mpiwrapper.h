@@ -217,21 +217,49 @@ struct MPI_const_StatusPtr {
 
 // Call-back function types
 
-typedef int(WPI_Comm_copy_attr_function)(WPI_Comm, int, void *, void *, void *,
-                                         int *);
-typedef int(WPI_Comm_delete_attr_function)(WPI_Comm, int, void *, void *);
-typedef void(WPI_Comm_errhandler_function)(WPI_Comm *, int *, ...);
-typedef int(WPI_Copy_function)(WPI_Comm, int, void *, void *, void *, int *);
-typedef int(WPI_Delete_function)(WPI_Comm, int, void *, void *);
-typedef void(WPI_File_errhandler_function)(WPI_File *, int *, ...);
-typedef int(WPI_Type_copy_attr_function)(WPI_Datatype, int, void *, void *,
-                                         void *, int *);
-typedef int(WPI_Type_delete_attr_function)(WPI_Datatype, int, void *, void *);
-typedef void(WPI_User_function)(void *a, void *b, int *len,
-                                WPI_Datatype *datatype);
-typedef int(WPI_Win_copy_attr_function)(WPI_Win, int, void *, void *, void *,
-                                        int *);
-typedef int(WPI_Win_delete_attr_function)(WPI_Win, int, void *, void *);
-typedef void(WPI_Win_errhandler_function)(WPI_Win *, int *, ...);
+typedef int WPI_Comm_copy_attr_function(WPI_Comm oldcomm, int comm_keyval,
+                                        void *extra_state,
+                                        void *attribute_val_in,
+                                        void *attribute_val, int *flag);
+typedef int WPI_Comm_delete_attr_function(WPI_Comm comm, int comm_keyval,
+                                          void *attribute_val,
+                                          void *extra_state);
+typedef void WPI_Comm_errhandler_function(WPI_Comm *, int *, ...);
+typedef WPI_Comm_copy_attr_function WPI_Copy_function;
+#if 0
+// TODO: Handle conversions
+typedef int WPI_Datarep_conversion_function(void *userbuf,
+                                            WPI_Datatype datatype, int count,
+                                            void *filebuf, WPI_Offset position,
+                                            void *extra_state);
+typedef int WPI_Datarep_extent_function(WPI_Datatype datatype,
+                                        WPI_Aint *file_extent,
+                                        void *extra_state);
+#endif
+typedef WPI_Comm_delete_attr_function WPI_Delete_function;
+typedef void WPI_File_errhandler_function(WPI_File *, int *, ...);
+typedef int WPI_Grequest_cancel_function(void *extra_state, int complete);
+typedef int WPI_Grequest_free_function(void *extra_state);
+#if 0
+// TODO: Handle status correctly
+typedef int WPI_Grequest_query_function(void *extra_state, WPI_Status *status);
+#endif
+typedef int WPI_Type_copy_attr_function(WPI_Datatype oldtype, int type_keyval,
+                                        void *extra_state,
+                                        void *attribute_val_in,
+                                        void *attribute_val_out, int *flag);
+typedef int WPI_Type_delete_attr_function(WPI_Datatype datatype,
+                                          int type_keyval, void *attribute_val,
+                                          void *extra_state);
+typedef void WPI_User_function(void *invec, void *inoutvec, int *len,
+                               WPI_Datatype *datatype);
+typedef int WPI_Win_copy_attr_function(WPI_Win oldwin, int win_keyval,
+                                       void *extra_state,
+                                       void *attribute_val_in,
+                                       void *attribute_val_out, int *flag);
+typedef int WPI_Win_delete_attr_function(WPI_Win win, int win_keyval,
+                                         void *attribute_val,
+                                         void *extra_state);
+typedef void WPI_Win_errhandler_function(WPI_Win *, int *, ...);
 
 #endif // #ifndef MPIWRAPPER_H
