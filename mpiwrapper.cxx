@@ -322,7 +322,7 @@ extern "C" int MT(Get_version)(int *version, int *subversion) {
   return MPI_SUCCESS;
 }
 
-////////////////////////////////////////////////////////////////////////////////
+// 10.3 Process Manager Interface
 
 extern "C" int MT(Comm_spawn_multiple)(int count, char *array_of_commands[],
                                        char **array_of_argv[],
@@ -343,6 +343,8 @@ extern "C" int MT(Comm_spawn_multiple)(int count, char *array_of_commands[],
       root, (MP(Comm))comm, (MP(CommPtr))intercomm, array_of_errcodes);
   return ierr;
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 // There is no way to forward varargs arguments. Should we return an error here?
 extern "C" int MT(Pcontrol)(const int level, ...) { return MPI_SUCCESS; }
