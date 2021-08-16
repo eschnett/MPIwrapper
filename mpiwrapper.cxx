@@ -34,6 +34,13 @@ MPI_Comm comm_w2m(WPI_Comm comm) { return (MPI_Comm)comm; }
 // Define implementations for most functions
 #define MT(TYPE) WPI_##TYPE
 #define MP(TYPE) MPI_##TYPE
+// #define FUNCTION(RTYPE, NAME, PTYPES, PNAMES)                                  \
+//   extern "C" RTYPE WPI_##NAME PTYPES {                                         \
+//     fprintf(stderr, "MPIwrapper: MPI_" #NAME ".0\n");                          \
+//     RTYPE const retval = MPI_##NAME PNAMES;                                    \
+//     fprintf(stderr, "MPIwrapper: MPI_" #NAME ".9\n");                          \
+//     return retval;                                                             \
+//   }
 #define FUNCTION(RTYPE, NAME, PTYPES, PNAMES)                                  \
   extern "C" RTYPE WPI_##NAME PTYPES { return MPI_##NAME PNAMES; }
 #define SKIP_MANUAL_FUNCTIONS
