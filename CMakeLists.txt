@@ -10,14 +10,14 @@ cmake --build build-mpich && cmake --install build-mpich
 
 
 export PATH=$HOME/src/spack/opt/spack/linux-ubuntu18.04-skylake_avx512/gcc-11.2.0/cmake-3.21.1-ztbpwc6mr65mqagnikcuuiifn3ox6btv/bin:$PATH
-rm -rf build-openmpi ../MPIstuff-openmpi
-cmake -S . -B build-openmpi -G Ninja -DCMAKE_CXX_COMPILER=/cm/shared/apps/openmpi/gcc-9/64/4.1.0/bin/mpic++ -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../MPIstuff-openmpi
+rm -rf build-openmpi $HOME/src/c/MPIstuff/mpiwrapper-openmpi
+cmake -S . -B build-openmpi -DCMAKE_CXX_COMPILER=/cm/shared/apps/openmpi/gcc-9/64/4.1.0/bin/mpic++ -DCMAKE_Fortran_COMPILER=/cm/shared/apps/openmpi/gcc-9/64/4.1.0/bin/mpifort -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-openmpi
 cmake --build build-openmpi && cmake --install build-openmpi
 
 export PATH=$HOME/src/spack/opt/spack/linux-ubuntu18.04-skylake_avx512/gcc-11.2.0/cmake-3.21.1-ztbpwc6mr65mqagnikcuuiifn3ox6btv/bin:$PATH
 module load mpi
-rm -rf build-intel ../MPIstuff-intel
-cmake -S . -B build-intel -G Ninja -DCMAKE_CXX_COMPILER=/cm/shared/apps/intel/mpi/2021.1.1/bin/mpicxx -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../MPIstuff-intel
+rm -rf build-intel $HOME/src/c/MPIstuff/mpiwrapper-intel
+cmake -S . -B build-intel -DCMAKE_CXX_COMPILER=/cm/shared/apps/intel/mpi/2021.1.1/bin/mpicxx -DCMAKE_Fortran_COMPILER=/cm/shared/apps/intel/mpi/2021.1.1/bin/mpifc -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-intel
 cmake --build build-intel && cmake --install build-intel
 module unload mpi
 ]]
