@@ -225,6 +225,7 @@ typedef int WPI_Comm_delete_attr_function(WPI_Comm comm, int comm_keyval,
                                           void *attribute_val,
                                           void *extra_state);
 typedef void WPI_Comm_errhandler_function(WPI_Comm *, int *, ...);
+typedef WPI_Comm_errhandler_function WPI_Comm_errhandler_fn;
 typedef WPI_Comm_copy_attr_function WPI_Copy_function;
 #if 0
 // TODO: Handle conversions
@@ -238,6 +239,7 @@ typedef int WPI_Datarep_extent_function(WPI_Datatype datatype,
 #endif
 typedef WPI_Comm_delete_attr_function WPI_Delete_function;
 typedef void WPI_File_errhandler_function(WPI_File *, int *, ...);
+typedef WPI_File_errhandler_function WPI_File_errhandler_fn;
 typedef int WPI_Grequest_cancel_function(void *extra_state, int complete);
 typedef int WPI_Grequest_free_function(void *extra_state);
 #if 0
@@ -261,5 +263,6 @@ typedef int WPI_Win_delete_attr_function(WPI_Win win, int win_keyval,
                                          void *attribute_val,
                                          void *extra_state);
 typedef void WPI_Win_errhandler_function(WPI_Win *, int *, ...);
+typedef WPI_Win_errhandler_function WPI_Win_errhandler_fn;
 
 #endif // #ifndef MPIWRAPPER_H
