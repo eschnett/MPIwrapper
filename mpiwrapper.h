@@ -124,7 +124,7 @@ typedef struct WPI_Status {
       int f2;
       int f3;
       size_t f4;
-    } padding_OpenMPI; // also Spectrum MPI
+    } padding_OpenMPI; // also IBM Spectrum MPI
     struct {
       int f0;
       int f1;
