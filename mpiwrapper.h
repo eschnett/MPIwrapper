@@ -1,6 +1,8 @@
 #ifndef MPIWRAPPER_H
 #define MPIWRAPPER_H
 
+#include "mpiwrapper-version.h"
+
 #include <mpi.h>
 
 #include <assert.h>

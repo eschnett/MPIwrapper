@@ -3,9 +3,12 @@
 #include <cstdarg>
 #include <vector>
 
-// TODO: Remove these
-WPI_Comm comm_m2w(MPI_Comm comm) { return WPI_Comm(comm); }
-MPI_Comm comm_w2m(WPI_Comm comm) { return (MPI_Comm)comm; }
+////////////////////////////////////////////////////////////////////////////////
+
+const char*const mpiwrapper_version = MPIWRAPPER_VERSION;
+const int mpiwrapper_version_major = MPIWRAPPER_VERSION_MAJOR;
+const int mpiwrapper_version_minor = MPIWRAPPER_VERSION_MINOR;
+const int mpiwrapper_version_patch = MPIWRAPPER_VERSION_PATCH;
 
 ////////////////////////////////////////////////////////////////////////////////
 

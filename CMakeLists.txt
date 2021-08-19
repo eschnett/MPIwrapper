@@ -26,14 +26,19 @@ module unload mpi
 
 cmake_minimum_required(VERSION 3.12...3.20)
 project(
-  MPIwrapper VERSION 1.0
+  MPIwrapper VERSION 1.0.0
   DESCRIPTION "MPI wrapper"
   LANGUAGES CXX Fortran
   )
 
 set(CMAKE_CXX_STANDARD 11)
 
+include(CMakePackageConfigHelpers)
+include(GNUInstallDirs)
+
 find_package(MPI REQUIRED)
+
+configure_file(mpiwrapper-version.h.in mpiwrapper-version.h @ONLY)
 
 add_custom_command(
   OUTPUT mpiwrapper.f
@@ -41,7 +46,8 @@ add_custom_command(
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mpiwrapper.f.in ${CMAKE_CURRENT_SOURCE_DIR}/mpi-constants-f.inc
   VERBATIM)
 
-add_library(mpiwrapper SHARED mpiwrapper.h mpiwrapper.cxx mpiwrapper.f)
+add_library(mpiwrapper SHARED mpiwrapper.h mpiwrapper-version.h mpiwrapper.cxx mpiwrapper.f)
+target_include_directories(mpiwrapper PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(mpiwrapper PUBLIC MPI::MPI_CXX MPI::MPI_Fortran)
 
 install(
