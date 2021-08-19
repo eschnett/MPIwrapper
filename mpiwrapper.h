@@ -113,7 +113,11 @@ typedef WPI_HandlePtr<MPI_Win> WPI_WinPtr;
 // MPI_Status
 // This is a difficult type to wrap since it has user-accessible fields.
 
+#ifdef __LP64__
 #define WPI_STATUS_SIZE 10
+#else
+#define WPI_STATUS_SIZE 8
+#endif
 
 // We put the MPI_Status struct in the beginning. This way, we can cast between
 // MPI_Status* and WPI_Status*.
@@ -138,7 +142,6 @@ typedef struct WPI_Status {
   mutable int MPI_SOURCE;
   mutable int MPI_TAG;
   mutable int MPI_ERROR;
-  mutable bool is_ignore;
 
   WPI_Status() = default;
   WPI_Status(const MPI_Status &status) {

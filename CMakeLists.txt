@@ -9,12 +9,28 @@ cmake --build build-mpich && cmake --install build-mpich
 
 
 
-export PATH=$HOME/src/spack/opt/spack/linux-ubuntu18.04-skylake_avx512/gcc-11.2.0/cmake-3.21.1-ztbpwc6mr65mqagnikcuuiifn3ox6btv/bin:$PATH
+
+module load cmake
+rm -rf build-openmpi-ubuntu $HOME/src/c/MPIstuff/mpiwrapper-openmpi-ubuntu
+cmake -S . -B build-openmpi-ubuntu -DCMAKE_CXX_COMPILER=/usr/bin/mpic++ -DCMAKE_Fortran_COMPILER=/usr/bin/mpifort -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-openmpi-ubuntu
+cmake --build build-openmpi-ubuntu && cmake --install build-openmpi-ubuntu
+
+module load cmake
 rm -rf build-openmpi $HOME/src/c/MPIstuff/mpiwrapper-openmpi
 cmake -S . -B build-openmpi -DCMAKE_CXX_COMPILER=/cm/shared/apps/openmpi/gcc-9/64/4.1.0/bin/mpic++ -DCMAKE_Fortran_COMPILER=/cm/shared/apps/openmpi/gcc-9/64/4.1.0/bin/mpifort -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-openmpi
 cmake --build build-openmpi && cmake --install build-openmpi
 
-export PATH=$HOME/src/spack/opt/spack/linux-ubuntu18.04-skylake_avx512/gcc-11.2.0/cmake-3.21.1-ztbpwc6mr65mqagnikcuuiifn3ox6btv/bin:$PATH
+module load cmake
+rm -rf build-openmpi-spack $HOME/src/c/MPIstuff/mpiwrapper-openmpi-spack
+cmake -S . -B build-openmpi-spack -DCMAKE_CXX_COMPILER=$HOME/src/spack/opt/spack/linux-ubuntu18.04-skylake_avx512/gcc-11.2.0/openmpi-4.1.1-3b4drmye35bg6hok7gk462yvoj6d4oqq/bin/mpicxx -DCMAKE_Fortran_COMPILER=$HOME/src/spack/opt/spack/linux-ubuntu18.04-skylake_avx512/gcc-11.2.0/openmpi-4.1.1-3b4drmye35bg6hok7gk462yvoj6d4oqq/bin/mpifort -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-openmpi-spack
+cmake --build build-openmpi-spack && cmake --install build-openmpi-spack
+
+module load cmake
+rm -rf build-mpich $HOME/src/c/MPIstuff/mpiwrapper-mpich
+cmake -S . -B build-mpich -DCMAKE_CXX_COMPILER=/cm/shared/apps/mpich/gcc-9/3.3.2/bin/mpic++ -DCMAKE_Fortran_COMPILER=/cm/shared/apps/mpich/gcc-9/3.3.2/bin/mpifort -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-mpich
+cmake --build build-mpich && cmake --install build-mpich
+
+module load cmake
 module load mpi
 rm -rf build-intel $HOME/src/c/MPIstuff/mpiwrapper-intel
 cmake -S . -B build-intel -DCMAKE_CXX_COMPILER=/cm/shared/apps/intel/mpi/2021.1.1/bin/mpicxx -DCMAKE_Fortran_COMPILER=/cm/shared/apps/intel/mpi/2021.1.1/bin/mpifc -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-intel
