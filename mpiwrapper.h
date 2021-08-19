@@ -5,10 +5,9 @@
 
 #include <mpi.h>
 
-#include <assert.h>
-#include <stdint.h>
-#include <string.h>
-
+#include <cassert>
+#include <cstdint>
+#include <cstring>
 #include <type_traits>
 
 // We implement this file in C++ so that we can automatically convert between

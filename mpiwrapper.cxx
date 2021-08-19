@@ -1,14 +1,85 @@
 #include "mpiwrapper.h"
 
-#include <cstdarg>
+#include <array>
+#include <cstdio>
+#include <cstdlib>
+#include <mutex>
+#include <type_traits>
 #include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const char*const mpiwrapper_version = MPIWRAPPER_VERSION;
+const char *const mpiwrapper_version = MPIWRAPPER_VERSION;
 const int mpiwrapper_version_major = MPIWRAPPER_VERSION_MAJOR;
 const int mpiwrapper_version_minor = MPIWRAPPER_VERSION_MINOR;
 const int mpiwrapper_version_patch = MPIWRAPPER_VERSION_PATCH;
+
+////////////////////////////////////////////////////////////////////////////////
+
+namespace {
+
+template <int N> struct MPI_Op_wrapper {
+  static void call(void *invec, void *inoutvec, int *len,
+                   MPI_Datatype *datatype);
+};
+
+struct WPI_Op_tuple {
+  MPI_Op mpi_op;                  // created by MPI
+  MPI_User_function *mpi_user_fn; // called by MPI
+  WPI_User_function *wpi_user_fn; // registered by the application
+
+  WPI_Op_tuple()
+      : mpi_op(MPI_OP_NULL), mpi_user_fn(nullptr), wpi_user_fn(nullptr) {}
+};
+
+constexpr int maxN = 100;
+std::array<WPI_Op_tuple, (sizeof(MPI_Op) == sizeof(WPI_Op) ? 0 : maxN)> op_map;
+
+template <int N>
+typename std::enable_if<(N == 0), void>::type init_op_tuple() {}
+template <int N> typename std::enable_if<(N != 0), void>::type init_op_tuple() {
+  op_map[N - 1].mpi_user_fn = MPI_Op_wrapper<N - 1>::call;
+  init_op_tuple<N - 1>();
+}
+__attribute__((__constructor__)) void init_op_map() {
+  init_op_tuple<std::tuple_size<decltype(op_map)>::value>();
+}
+
+template <int N>
+void MPI_Op_wrapper<N>::call(void *invec, void *inoutvec, int *len,
+                             MPI_Datatype *mpi_datatype) {
+  WPI_Datatype wpi_datatype(*mpi_datatype);
+  op_map[N].wpi_user_fn(invec, inoutvec, len, &wpi_datatype);
+}
+
+int Op_map_create(WPI_User_function *const wpi_user_fn_) {
+  assert(wpi_user_fn_);
+  static std::mutex m;
+  const std::lock_guard<std::mutex> lock(m);
+  for (int n = 0; n < int(op_map.size()); ++n) {
+    if (!op_map[n].wpi_user_fn) {
+      op_map[n].wpi_user_fn = wpi_user_fn_;
+      return n;
+    }
+  }
+  std::fprintf(stderr, "Too many operators created\n");
+  std::exit(1);
+}
+
+void Op_map_free(const MPI_Op mpi_op_) {
+  static std::mutex m;
+  const std::lock_guard<std::mutex> lock(m);
+  for (int n = 0; n < int(op_map.size()); ++n) {
+    if (op_map[n].mpi_op == mpi_op_) {
+      op_map[n].wpi_user_fn = nullptr;
+      return;
+    }
+  }
+  std::fprintf(stderr, "Tried to free non-existing operator\n");
+  std::exit(1);
+}
+
+} // namespace
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -233,6 +304,26 @@ extern "C" int MT(Alltoallw)(const void *sendbuf, const int sendcounts[],
       MP(Alltoallw)(sendbuf, sendcounts, sdispls, stypes.data(), recvbuf,
                     recvcounts, rdispls, rtypes.data(), (MP(Comm))comm);
   return ierr;
+}
+
+// 5.9 Global Reduction Operations
+
+extern "C" int MT(Op_create)(MT(User_function) * user_fn, int commute,
+                             MT(OpPtr) op) {
+  if (sizeof(MP(Op)) == sizeof(MT(Op)))
+    return MP(Op_create)((MP(User_function) *)user_fn, commute, (MP(OpPtr))op);
+  const int n = Op_map_create(user_fn);
+  const MPI_User_function *const mpi_user_fn = op_map[n].mpi_user_fn;
+  const int ierr = MP(Op_create)(mpi_user_fn, commute, (MP(OpPtr))op);
+  op_map[n].mpi_op = *op;
+  return ierr;
+}
+
+extern "C" int MT(Op_free)(MT(OpPtr) op) {
+  if (sizeof(MP(Op)) == sizeof(MT(Op)))
+    return MP(Op_free)((MP(OpPtr))op);
+  Op_map_free(*op);
+  return MP(Op_free)((MP(OpPtr))op);
 }
 
 // 5.12 Nonblocking Collective Operations
