@@ -5,7 +5,6 @@
 #include <cstdlib>
 #include <iostream>
 #include <mutex>
-#include <sstream>
 #include <type_traits>
 #include <vector>
 
@@ -25,6 +24,7 @@ struct WPI_Op_tuple {
   MPI_User_function *mpi_user_fn; // called by MPI
   WPI_User_function *wpi_user_fn; // registered by the application
 
+  // mpi_user_fn is explicitly initialized by `init_op_map`
   WPI_Op_tuple() : mpi_op(MPI_OP_NULL), wpi_user_fn(nullptr) {}
 
   friend std::ostream &operator<<(std::ostream &os,
@@ -42,12 +42,6 @@ std::array<WPI_Op_tuple, (sizeof(MPI_Op) == sizeof(WPI_Op) ? 0 : maxN)> op_map;
 template <int N>
 void mpi_op_wrapper(void *invec, void *inoutvec, int *len,
                     MPI_Datatype *mpi_datatype) {
-  {
-    std::ostringstream buf;
-    buf << "Calling MPI_Op_wrapper<" << N << ">\n"
-        << "  mpi_op=" << op_map[N] << "\n";
-    std::cerr << buf.str();
-  }
   WPI_Datatype wpi_datatype(*mpi_datatype);
   op_map[N].wpi_user_fn(invec, inoutvec, len, &wpi_datatype);
 }
@@ -68,17 +62,7 @@ int Op_map_create(WPI_User_function *const wpi_user_fn_) {
   const std::lock_guard<std::mutex> lock(m);
   for (int n = 0; n < int(op_map.size()); ++n) {
     if (!op_map[n].wpi_user_fn) {
-      {
-        std::ostringstream buf;
-        buf << "Creating MPI_Op_wrapper<" << n << ">\n";
-        std::cerr << buf.str();
-      }
       op_map[n].wpi_user_fn = wpi_user_fn_;
-      {
-        std::ostringstream buf;
-        buf << "  mpi_op[" << n << "]=" << op_map[n] << "\n";
-        std::cerr << buf.str();
-      }
       return n;
     }
   }
@@ -91,12 +75,6 @@ void Op_map_free(const MPI_Op mpi_op_) {
   const std::lock_guard<std::mutex> lock(m);
   for (int n = 0; n < int(op_map.size()); ++n) {
     if (op_map[n].mpi_op == mpi_op_) {
-      {
-        std::ostringstream buf;
-        buf << "Freeing MPI_Op_wrapper<" << n << ">\n"
-            << "  mpi_op[" << n << "]=" << op_map[n] << "\n";
-        std::cerr << buf.str();
-      }
       op_map[n].mpi_op = MPI_OP_NULL;
       op_map[n].wpi_user_fn = nullptr;
       return;
@@ -135,14 +113,14 @@ void Op_map_free(const MPI_Op mpi_op_) {
 // Define implementations for most functions
 #define MT(TYPE) WPI_##TYPE
 #define MP(TYPE) MPI_##TYPE
-#define FUNCTION(RTYPE, NAME, PTYPES, PNAMES)                                  \
-  extern "C" RTYPE WPI_##NAME PTYPES {                                         \
-    fprintf(stderr, "MPIwrapper: MPI_" #NAME ".0\n");                          \
-    RTYPE const retval = MPI_##NAME PNAMES;                                    \
-    fprintf(stderr, "MPIwrapper: MPI_" #NAME ".9\n");                          \
-    return retval;                                                             \
-  }
 // #define FUNCTION(RTYPE, NAME, PTYPES, PNAMES)                                  \
+//   extern "C" RTYPE WPI_##NAME PTYPES {                                         \
+//     fprintf(stderr, "MPIwrapper: MPI_" #NAME ".0\n");                          \
+//     RTYPE const retval = MPI_##NAME PNAMES;                                    \
+//     fprintf(stderr, "MPIwrapper: MPI_" #NAME ".9\n");                          \
+//     return retval;                                                             \
+//   }
+#define FUNCTION(RTYPE, NAME, PTYPES, PNAMES)                                  \
 //   extern "C" RTYPE WPI_##NAME PTYPES { return MPI_##NAME PNAMES; }
 #define SKIP_MANUAL_FUNCTIONS
 #include "mpi-functions.inc"
@@ -337,35 +315,18 @@ extern "C" int MT(Alltoallw)(const void *sendbuf, const int sendcounts[],
 
 extern "C" int MT(Op_create)(MT(User_function) * user_fn, int commute,
                              MT(OpPtr) op) {
-  {
-    std::ostringstream buf;
-    buf << "OP_create user_fn=" << (const void *)user_fn
-        << " commute=" << commute << " op=" << (const void *)op << "\n";
-    std::cerr << buf.str();
-  }
   if (sizeof(MP(Op)) == sizeof(MT(Op)))
     return MP(Op_create)((MP(User_function) *)user_fn, commute, (MP(OpPtr))op);
   const int n = Op_map_create(user_fn);
   const MPI_User_function *const mpi_user_fn = op_map[n].mpi_user_fn;
   const int ierr = MP(Op_create)(mpi_user_fn, commute, (MP(OpPtr))op);
   op_map[n].mpi_op = *op;
-  {
-    std::ostringstream buf;
-    buf << "Created MPI_Op_wrapper<" << n << ">\n"
-        << "  mpi_op[" << n << "]=" << op_map[n] << "\n";
-    std::cerr << buf.str();
-  }
   return ierr;
 }
 
 extern "C" int MT(Op_free)(MT(OpPtr) op) {
   if (sizeof(MP(Op)) == sizeof(MT(Op)))
     return MP(Op_free)((MP(OpPtr))op);
-  {
-    std::ostringstream buf;
-    buf << "Freeing MPI_Op_wrapper\n";
-    std::cerr << buf.str();
-  }
   const MPI_Op old_op = *op;
   const int ierr = MP(Op_free)((MP(OpPtr))op);
   Op_map_free(old_op);
