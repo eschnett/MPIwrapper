@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdio>
 #include <cstdlib>
+#include <iostream>
 #include <mutex>
 #include <type_traits>
 #include <vector>
@@ -18,11 +19,6 @@ const int mpiwrapper_version_patch = MPIWRAPPER_VERSION_PATCH;
 
 namespace {
 
-template <int N> struct MPI_Op_wrapper {
-  static void call(void *invec, void *inoutvec, int *len,
-                   MPI_Datatype *datatype);
-};
-
 struct WPI_Op_tuple {
   MPI_Op mpi_op;                  // created by MPI
   MPI_User_function *mpi_user_fn; // called by MPI
@@ -30,27 +26,35 @@ struct WPI_Op_tuple {
 
   WPI_Op_tuple()
       : mpi_op(MPI_OP_NULL), mpi_user_fn(nullptr), wpi_user_fn(nullptr) {}
+
+  friend std::ostream &operator<<(std::ostream &os,
+                                  const WPI_Op_tuple &wpi_op_tuple) {
+    return os << "WPI_Op_tuple{mpi_op=" << wpi_op_tuple.mpi_op
+              << ",mpi_user_fn=" << wpi_op_tuple.mpi_user_fn << ",wpi_user_fn"
+              << wpi_op_tuple.wpi_user_fn << "}";
+  }
 };
 
 constexpr int maxN = 100;
 std::array<WPI_Op_tuple, (sizeof(MPI_Op) == sizeof(WPI_Op) ? 0 : maxN)> op_map;
 
 template <int N>
+void mpi_op_wrapper(void *invec, void *inoutvec, int *len,
+                    MPI_Datatype *mpi_datatype) {
+  std::cerr << "Calling MPI_Op_wrapper<" << N << ">\n"
+            << "  mpi_op=" << op_map[N] << "\n";
+  WPI_Datatype wpi_datatype(*mpi_datatype);
+  op_map[N].wpi_user_fn(invec, inoutvec, len, &wpi_datatype);
+}
+
+template <int N>
 typename std::enable_if<(N == 0), void>::type init_op_tuple() {}
 template <int N> typename std::enable_if<(N != 0), void>::type init_op_tuple() {
-  op_map[N - 1].mpi_user_fn = MPI_Op_wrapper<N - 1>::call;
+  op_map[N - 1].mpi_user_fn = mpi_op_wrapper<N - 1>;
   init_op_tuple<N - 1>();
 }
 __attribute__((__constructor__)) void init_op_map() {
   init_op_tuple<std::tuple_size<decltype(op_map)>::value>();
-}
-
-template <int N>
-void MPI_Op_wrapper<N>::call(void *invec, void *inoutvec, int *len,
-                             MPI_Datatype *mpi_datatype) {
-  fprintf(stderr, "Calling MPI_Op_wrapper<%d>\n", N);
-  WPI_Datatype wpi_datatype(*mpi_datatype);
-  op_map[N].wpi_user_fn(invec, inoutvec, len, &wpi_datatype);
 }
 
 int Op_map_create(WPI_User_function *const wpi_user_fn_) {
@@ -59,8 +63,9 @@ int Op_map_create(WPI_User_function *const wpi_user_fn_) {
   const std::lock_guard<std::mutex> lock(m);
   for (int n = 0; n < int(op_map.size()); ++n) {
     if (!op_map[n].wpi_user_fn) {
-      fprintf(stderr, "Creating MPI_Op_wrapper<%d>\n", n);
+      std::cerr << "Creating MPI_Op_wrapper<" << n << ">\n";
       op_map[n].wpi_user_fn = wpi_user_fn_;
+      std::cerr << "  mpi_op[" << n << "]=" << op_map[n] << "\n";
       return n;
     }
   }
@@ -73,7 +78,8 @@ void Op_map_free(const MPI_Op mpi_op_) {
   const std::lock_guard<std::mutex> lock(m);
   for (int n = 0; n < int(op_map.size()); ++n) {
     if (op_map[n].mpi_op == mpi_op_) {
-      fprintf(stderr, "Freeing MPI_Op_wrapper<%d>\n", n);
+      std::cerr << "Freeing MPI_Op_wrapper<" << n << ">\n"
+                << "  mpi_op[" << n << "]=" << op_map[n] << "\n";
       op_map[n].wpi_user_fn = nullptr;
       return;
     }
@@ -319,12 +325,15 @@ extern "C" int MT(Op_create)(MT(User_function) * user_fn, int commute,
   const MPI_User_function *const mpi_user_fn = op_map[n].mpi_user_fn;
   const int ierr = MP(Op_create)(mpi_user_fn, commute, (MP(OpPtr))op);
   op_map[n].mpi_op = *op;
+  std::cerr << "Created MPI_Op_wrapper<" << n << ">\n"
+            << "  mpi_op[" << n << "]=" << op_map[n] << "\n";
   return ierr;
 }
 
 extern "C" int MT(Op_free)(MT(OpPtr) op) {
   if (sizeof(MP(Op)) == sizeof(MT(Op)))
     return MP(Op_free)((MP(OpPtr))op);
+  std::cerr << "Freeing MPI_Op_wrapper\n";
   Op_map_free(*op);
   return MP(Op_free)((MP(OpPtr))op);
 }
