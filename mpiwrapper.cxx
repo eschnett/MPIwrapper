@@ -121,7 +121,7 @@ void Op_map_free(const MPI_Op mpi_op_) {
 //     return retval;                                                             \
 //   }
 #define FUNCTION(RTYPE, NAME, PTYPES, PNAMES)                                  \
-//   extern "C" RTYPE WPI_##NAME PTYPES { return MPI_##NAME PNAMES; }
+  extern "C" RTYPE WPI_##NAME PTYPES { return MPI_##NAME PNAMES; }
 #define SKIP_MANUAL_FUNCTIONS
 #include "mpi-functions.inc"
 #undef SKIP_MANUAL_FUNCTIONS
