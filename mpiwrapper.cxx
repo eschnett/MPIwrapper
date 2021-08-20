@@ -48,6 +48,7 @@ __attribute__((__constructor__)) void init_op_map() {
 template <int N>
 void MPI_Op_wrapper<N>::call(void *invec, void *inoutvec, int *len,
                              MPI_Datatype *mpi_datatype) {
+  fprintf(stderr, "Calling MPI_Op_wrapper<%d>\n", N);
   WPI_Datatype wpi_datatype(*mpi_datatype);
   op_map[N].wpi_user_fn(invec, inoutvec, len, &wpi_datatype);
 }
@@ -58,6 +59,7 @@ int Op_map_create(WPI_User_function *const wpi_user_fn_) {
   const std::lock_guard<std::mutex> lock(m);
   for (int n = 0; n < int(op_map.size()); ++n) {
     if (!op_map[n].wpi_user_fn) {
+      fprintf(stderr, "Creating MPI_Op_wrapper<%d>\n", n);
       op_map[n].wpi_user_fn = wpi_user_fn_;
       return n;
     }
@@ -71,6 +73,7 @@ void Op_map_free(const MPI_Op mpi_op_) {
   const std::lock_guard<std::mutex> lock(m);
   for (int n = 0; n < int(op_map.size()); ++n) {
     if (op_map[n].mpi_op == mpi_op_) {
+      fprintf(stderr, "Freeing MPI_Op_wrapper<%d>\n", n);
       op_map[n].wpi_user_fn = nullptr;
       return;
     }
@@ -108,15 +111,15 @@ void Op_map_free(const MPI_Op mpi_op_) {
 // Define implementations for most functions
 #define MT(TYPE) WPI_##TYPE
 #define MP(TYPE) MPI_##TYPE
-// #define FUNCTION(RTYPE, NAME, PTYPES, PNAMES)                                  \
-//   extern "C" RTYPE WPI_##NAME PTYPES {                                         \
-//     fprintf(stderr, "MPIwrapper: MPI_" #NAME ".0\n");                          \
-//     RTYPE const retval = MPI_##NAME PNAMES;                                    \
-//     fprintf(stderr, "MPIwrapper: MPI_" #NAME ".9\n");                          \
-//     return retval;                                                             \
-//   }
 #define FUNCTION(RTYPE, NAME, PTYPES, PNAMES)                                  \
-  extern "C" RTYPE WPI_##NAME PTYPES { return MPI_##NAME PNAMES; }
+  extern "C" RTYPE WPI_##NAME PTYPES {                                         \
+    fprintf(stderr, "MPIwrapper: MPI_" #NAME ".0\n");                          \
+    RTYPE const retval = MPI_##NAME PNAMES;                                    \
+    fprintf(stderr, "MPIwrapper: MPI_" #NAME ".9\n");                          \
+    return retval;                                                             \
+  }
+// #define FUNCTION(RTYPE, NAME, PTYPES, PNAMES)                                  \
+//   extern "C" RTYPE WPI_##NAME PTYPES { return MPI_##NAME PNAMES; }
 #define SKIP_MANUAL_FUNCTIONS
 #include "mpi-functions.inc"
 #undef SKIP_MANUAL_FUNCTIONS
