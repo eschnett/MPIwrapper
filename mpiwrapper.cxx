@@ -134,7 +134,7 @@ void Op_map_free(const MPI_Op mpi_op_) {
 extern "C" int MT(Waitany)(int count, MT(Request) array_of_requests[],
                            int *indx, MT(StatusPtr) status) {
   if (sizeof(MP(Request)) == sizeof(MT(Request)))
-    return MP(Waitany)(count, (MP(Request) *)array_of_requests, indx,
+    return MP(Waitany)(count, (MP(RequestPtr))array_of_requests, indx,
                        (MP(StatusPtr))status);
   std::vector<MP(Request)> reqs(count);
   for (int i = 0; i < count; ++i)
@@ -148,7 +148,7 @@ extern "C" int MT(Waitany)(int count, MT(Request) array_of_requests[],
 extern "C" int MT(Testany)(int count, MT(Request) array_of_requests[],
                            int *indx, int *flag, MT(StatusPtr) status) {
   if (sizeof(MP(Request)) == sizeof(MT(Request)))
-    return MP(Testany)(count, (MP(Request) *)array_of_requests, indx, flag,
+    return MP(Testany)(count, (MP(RequestPtr))array_of_requests, indx, flag,
                        (MP(StatusPtr))status);
   std::vector<MP(Request)> reqs(count);
   for (int i = 0; i < count; ++i)
@@ -163,7 +163,7 @@ extern "C" int MT(Testany)(int count, MT(Request) array_of_requests[],
 extern "C" int MT(Waitall)(int count, MT(Request) array_of_requests[],
                            MT(StatusPtr) status) {
   if (sizeof(MP(Request)) == sizeof(MT(Request)))
-    return MP(Waitall)(count, (MP(Request) *)array_of_requests,
+    return MP(Waitall)(count, (MP(RequestPtr))array_of_requests,
                        (MP(StatusPtr))status);
   std::vector<MP(Request)> reqs(count);
   for (int i = 0; i < count; ++i)
@@ -177,7 +177,7 @@ extern "C" int MT(Waitall)(int count, MT(Request) array_of_requests[],
 extern "C" int MT(Testall)(int count, MT(Request) array_of_requests[],
                            int *flag, MT(StatusPtr) status) {
   if (sizeof(MP(Request)) == sizeof(MT(Request)))
-    return MP(Testall)(count, (MP(Request) *)array_of_requests, flag,
+    return MP(Testall)(count, (MP(RequestPtr))array_of_requests, flag,
                        (MP(StatusPtr))status);
   std::vector<MP(Request)> reqs(count);
   for (int i = 0; i < count; ++i)
@@ -192,8 +192,8 @@ extern "C" int MT(Waitsome)(int incount, MT(Request) array_of_requests[],
                             int *outcount, int array_of_indices[],
                             MT(Status) array_of_statuses[]) {
   if (sizeof(MP(Request)) == sizeof(MT(Request)) &&
-      (MP(Status) *)array_of_statuses == MPI_STATUSES_IGNORE)
-    return MP(Waitsome)(incount, (MP(Request) *)array_of_requests, outcount,
+      (MP(StatusPtr))array_of_statuses == MPI_STATUSES_IGNORE)
+    return MP(Waitsome)(incount, (MP(RequestPtr))array_of_requests, outcount,
                         array_of_indices, MPI_STATUSES_IGNORE);
   std::vector<MP(Request)> reqs(incount);
   for (int i = 0; i < incount; ++i)
@@ -214,8 +214,8 @@ extern "C" int MT(Testsome)(int incount, MT(Request) array_of_requests[],
                             int *outcount, int array_of_indices[],
                             MT(Status) array_of_statuses[]) {
   if (sizeof(MP(Request)) == sizeof(MT(Request)) &&
-      (MP(Status) *)array_of_statuses == MPI_STATUSES_IGNORE)
-    return MP(Waitsome)(incount, (MP(Request) *)array_of_requests, outcount,
+      (MP(StatusPtr))array_of_statuses == MPI_STATUSES_IGNORE)
+    return MP(Waitsome)(incount, (MP(RequestPtr))array_of_requests, outcount,
                         array_of_indices, MPI_STATUSES_IGNORE);
   std::vector<MP(Request)> reqs(incount);
   for (int i = 0; i < incount; ++i)
@@ -236,7 +236,7 @@ extern "C" int MT(Testsome)(int incount, MT(Request) array_of_requests[],
 
 extern "C" int MT(Startall)(int count, MT(Request) array_of_requests[]) {
   if (sizeof(MP(Request)) == sizeof(MT(Request)))
-    return MP(Startall)(count, (MP(Request) *)array_of_requests);
+    return MP(Startall)(count, (MP(RequestPtr))array_of_requests);
   std::vector<MP(Request)> reqs(count);
   for (int i = 0; i < count; ++i)
     reqs[i] = (MP(Request))array_of_requests[i];
@@ -256,13 +256,13 @@ extern "C" int MT(Type_create_struct)(int count,
   if (sizeof(MP(Datatype)) == sizeof(MT(Datatype)))
     return MP(Type_create_struct)(
         count, array_of_blocklengths, (const MP(Aint) *)array_of_displacements,
-        (const MP(Datatype) *)array_of_types, (MP(DatatypePtr))newtype);
-  std::vector<MP(Datatype)> types(count);
+        (const MP(DatatypePtr))array_of_types, (MP(DatatypePtr))newtype);
+  std::vector<MP(Datatype)> datatypes(count);
   for (int i = 0; i < count; ++i)
-    types[i] = (MP(Datatype))array_of_types[i];
+    datatypes[i] = (MP(Datatype))array_of_types[i];
   const int ierr = MP(Type_create_struct)(
       count, array_of_blocklengths, (const MP(Aint) *)array_of_displacements,
-      types.data(), (MP(DatatypePtr))newtype);
+      datatypes.data(), (MP(DatatypePtr))newtype);
   return ierr;
 }
 
@@ -275,14 +275,13 @@ extern "C" int MT(Type_get_contents)(MT(Datatype) datatype, int max_integers,
     return MP(Type_get_contents)(
         (MP(Datatype))datatype, max_integers, max_addresses, max_datatypes,
         array_of_integers, (MP(Aint) *)array_of_addresses,
-        (MP(Datatype) *)array_of_datatypes);
-  std::vector<MP(Datatype)> types(max_datatypes);
+        (MP(DatatypePtr))array_of_datatypes);
+  std::vector<MP(Datatype)> datatypes(max_datatypes);
   const int ierr = MP(Type_get_contents)(
       (MP(Datatype))datatype, max_integers, max_addresses, max_datatypes,
-      array_of_integers, (MP(Aint) *)array_of_addresses,
-      (MP(Datatype) *)array_of_datatypes);
+      array_of_integers, (MP(Aint) *)array_of_addresses, datatypes.data());
   for (int i = 0; i < max_datatypes; ++i)
-    array_of_datatypes[i] = (MT(Datatype))types[i];
+    array_of_datatypes[i] = (MT(Datatype))datatypes[i];
   return ierr;
 }
 
@@ -295,8 +294,8 @@ extern "C" int MT(Alltoallw)(const void *sendbuf, const int sendcounts[],
                              const MT(Datatype) recvtypes[], MT(Comm) comm) {
   if (sizeof(MP(Datatype)) == sizeof(MT(Datatype)))
     return MP(Alltoallw)(
-        sendbuf, sendcounts, sdispls, (MP(Datatype) *)sendtypes, recvbuf,
-        recvcounts, rdispls, (const MP(Datatype) *)recvtypes, (MP(Comm))comm);
+        sendbuf, sendcounts, sdispls, (MP(DatatypePtr))sendtypes, recvbuf,
+        recvcounts, rdispls, (const MP(DatatypePtr))recvtypes, (MP(Comm))comm);
   int comm_size;
   MPI_Comm_size((MP(Comm))comm, &comm_size);
   std::vector<MP(Datatype)> stypes(comm_size);
@@ -343,8 +342,8 @@ extern "C" int MT(Ialltoallw)(const void *sendbuf, const int sendcounts[],
                               MT(RequestPtr) request) {
   if (sizeof(MP(Datatype)) == sizeof(MT(Datatype)))
     return MP(Ialltoallw)(sendbuf, sendcounts, sdispls,
-                          (MP(Datatype) *)sendtypes, recvbuf, recvcounts,
-                          rdispls, (const MP(Datatype) *)recvtypes,
+                          (MP(DatatypePtr))sendtypes, recvbuf, recvcounts,
+                          rdispls, (const MP(DatatypePtr))recvtypes,
                           (MP(Comm))comm, (MP(RequestPtr))request);
   int comm_size;
   MPI_Comm_size((MP(Comm))comm, &comm_size);
@@ -369,8 +368,8 @@ extern "C" int MT(Neighbor_alltoallw)(
   if (sizeof(MP(Datatype)) == sizeof(MT(Datatype)))
     return MP(Neighbor_alltoallw)(
         sendbuf, sendcounts, (const MP(Aint) *)sdispls,
-        (const MP(Datatype) *)sendtypes, recvbuf, recvcounts,
-        (const MP(Aint) *)rdispls, (const MP(Datatype) *)recvtypes,
+        (const MP(DatatypePtr))sendtypes, recvbuf, recvcounts,
+        (const MP(Aint) *)rdispls, (const MP(DatatypePtr))recvtypes,
         (MP(Comm))comm);
   int comm_size;
   MPI_Comm_size((MP(Comm))comm, &comm_size);
@@ -396,8 +395,8 @@ extern "C" int MT(Ineighbor_alltoallw)(
   if (sizeof(MP(Datatype)) == sizeof(MT(Datatype)))
     return MP(Ineighbor_alltoallw)(
         sendbuf, sendcounts, (const MP(Aint) *)sdispls,
-        (const MP(Datatype) *)sendtypes, recvbuf, recvcounts,
-        (const MP(Aint) *)rdispls, (const MP(Datatype) *)recvtypes,
+        (const MP(DatatypePtr))sendtypes, recvbuf, recvcounts,
+        (const MP(Aint) *)rdispls, (const MP(DatatypePtr))recvtypes,
         (MP(Comm))comm, (MP(RequestPtr))request);
   int comm_size;
   MPI_Comm_size((MP(Comm))comm, &comm_size);
@@ -434,7 +433,7 @@ extern "C" int MT(Comm_spawn_multiple)(int count, char *array_of_commands[],
   if (sizeof(MP(Info)) == sizeof(MT(Info)))
     return MP(Comm_spawn_multiple)(
         count, array_of_commands, array_of_argv, array_of_maxprocs,
-        (const MP(Info) *)array_of_info, root, (MP(Comm))comm,
+        (const MP(InfoPtr))array_of_info, root, (MP(Comm))comm,
         (MP(CommPtr))intercomm, array_of_errcodes);
   std::vector<MP(Info)> infos(count);
   for (int i = 0; i < count; ++i)
