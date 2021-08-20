@@ -31,8 +31,9 @@ struct WPI_Op_tuple {
   friend std::ostream &operator<<(std::ostream &os,
                                   const WPI_Op_tuple &wpi_op_tuple) {
     return os << "WPI_Op_tuple{mpi_op=" << wpi_op_tuple.mpi_op
-              << ",mpi_user_fn=0x" << wpi_op_tuple.mpi_user_fn
-              << ",wpi_user_fn=0x" << wpi_op_tuple.wpi_user_fn << "}";
+              << ",mpi_user_fn=" << (const void *)wpi_op_tuple.mpi_user_fn
+              << ",wpi_user_fn=" << (const void *)wpi_op_tuple.wpi_user_fn
+              << "}";
   }
 };
 
@@ -337,6 +338,12 @@ extern "C" int MT(Alltoallw)(const void *sendbuf, const int sendcounts[],
 
 extern "C" int MT(Op_create)(MT(User_function) * user_fn, int commute,
                              MT(OpPtr) op) {
+  {
+    std::ostringstream buf;
+    buf << "OP_create user_fn=" << (const void *)user_fn
+        << " commute=" << commute << " op=" << (const void *)op << "\n";
+    std::cerr << buf.str();
+  }
   if (sizeof(MP(Op)) == sizeof(MT(Op)))
     return MP(Op_create)((MP(User_function) *)user_fn, commute, (MP(OpPtr))op);
   const int n = Op_map_create(user_fn);
