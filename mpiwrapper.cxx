@@ -25,8 +25,7 @@ struct WPI_Op_tuple {
   MPI_User_function *mpi_user_fn; // called by MPI
   WPI_User_function *wpi_user_fn; // registered by the application
 
-  WPI_Op_tuple()
-      : mpi_op(MPI_OP_NULL), mpi_user_fn(nullptr), wpi_user_fn(nullptr) {}
+  WPI_Op_tuple() : mpi_op(MPI_OP_NULL), wpi_user_fn(nullptr) {}
 
   friend std::ostream &operator<<(std::ostream &os,
                                   const WPI_Op_tuple &wpi_op_tuple) {
