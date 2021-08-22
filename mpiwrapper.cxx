@@ -1,4 +1,4 @@
-#include "mpiwrapper.h"
+#include "mpiwrapper.hxx"
 
 #include <array>
 #include <cstdio>
@@ -10,10 +10,24 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
+extern "C" const char *const mpiwrapper_version;
+extern "C" const int mpiwrapper_version_major;
+extern "C" const int mpiwrapper_version_minor;
+extern "C" const int mpiwrapper_version_patch;
+
 const char *const mpiwrapper_version = MPIWRAPPER_VERSION;
 const int mpiwrapper_version_major = MPIWRAPPER_VERSION_MAJOR;
 const int mpiwrapper_version_minor = MPIWRAPPER_VERSION_MINOR;
 const int mpiwrapper_version_patch = MPIWRAPPER_VERSION_PATCH;
+
+// Provided MPI ABI version (we use SemVer)
+extern "C" const int MPIABI_VERSION_MAJOR;
+extern "C" const int MPIABI_VERSION_MINOR;
+extern "C" const int MPIABI_VERSION_PATCH;
+
+const int MPIABI_VERSION_MAJOR = 1;
+const int MPIABI_VERSION_MINOR = 0;
+const int MPIABI_VERSION_PATCH = 0;
 
 ////////////////////////////////////////////////////////////////////////////////
 

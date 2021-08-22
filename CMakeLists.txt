@@ -62,7 +62,7 @@ add_custom_command(
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mpiwrapper.f.in ${CMAKE_CURRENT_SOURCE_DIR}/mpi-constants-f.inc
   VERBATIM)
 
-add_library(mpiwrapper SHARED mpiwrapper.h mpiwrapper-version.h mpiwrapper.cxx mpiwrapper.f)
+add_library(mpiwrapper SHARED mpiwrapper.hxx mpiwrapper-version.h mpiwrapper.cxx mpiwrapper.f)
 target_include_directories(mpiwrapper PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(mpiwrapper PUBLIC MPI::MPI_CXX MPI::MPI_Fortran)
 

@@ -1,5 +1,5 @@
-#ifndef MPIWRAPPER_H
-#define MPIWRAPPER_H
+#ifndef MPIWRAPPER_HXX
+#define MPIWRAPPER_HXX
 
 #include "mpiwrapper-version.h"
 
@@ -269,4 +269,4 @@ typedef int WPI_Win_delete_attr_function(WPI_Win win, int win_keyval,
 typedef void WPI_Win_errhandler_function(WPI_Win *, int *, ...);
 typedef WPI_Win_errhandler_function WPI_Win_errhandler_fn;
 
-#endif // #ifndef MPIWRAPPER_H
+#endif // #ifndef MPIWRAPPER_HXX
