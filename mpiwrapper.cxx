@@ -430,9 +430,20 @@ extern "C" int MT(Ineighbor_alltoallw)(
 // 8.1 Implementation Information
 
 extern "C" int MT(Get_version)(int *version, int *subversion) {
-  // TODO: Synchronize with MPI_VERSION and MPI_SUBVERSION
-  *version = 3;
-  *subversion = 1;
+  *version = WPI_VERSION;
+  *subversion = WPI_SUBVERSION;
+  return MPI_SUCCESS;
+}
+
+extern "C" int MT(Get_library_version)(char *version, int *resultlen) {
+  char wrapped_version[MPI_MAX_LIBRARY_VERSION_STRING];
+  int wrapped_resultlen;
+  MP(Get_library_version)(wrapped_version, &wrapped_resultlen);
+
+  // TODO: Add MPItrampoline version number as well
+  *resultlen = snprintf(version, WPI_MAX_LIBRARY_VERSION_STRING,
+                        "MPIwrapper %s, wrapping %s", MPIWRAPPER_VERSION,
+                        wrapped_version);
   return MPI_SUCCESS;
 }
 

@@ -13,6 +13,21 @@
 // We implement this file in C++ so that we can automatically convert between
 // the `MPI` and `MPIwrapper` types
 
+// Compile-time constants
+
+#define WPI_VERSION 3 // we pretend to support 3.1
+#define WPI_SUBVERSION 1
+
+// TODO: Check whether these limits are compatible with the wrapped MPI
+// #define WPI_MAX_DATAREP_STRING
+#define WPI_MAX_ERROR_STRING 1024           // MPICH's default
+#define WPI_MAX_INFO_KEY 256                // from MPICH
+#define WPI_MAX_INFO_VAL 1024               // from MPICH
+#define WPI_MAX_LIBRARY_VERSION_STRING 8192 // MPICH's default
+#define WPI_MAX_OBJECT_NAME 128             // from MPICH
+#define WPI_MAX_PORT_NAME 256               // from MPICH
+#define WPI_MAX_PROCESSOR_NAME 128          // MPICH's default
+
 ////////////////////////////////////////////////////////////////////////////////
 
 // Simple types
@@ -221,6 +236,8 @@ struct MPI_const_StatusPtr {
 
 // Call-back function types
 
+// TODO: Handle conversions
+
 typedef int WPI_Comm_copy_attr_function(WPI_Comm oldcomm, int comm_keyval,
                                         void *extra_state,
                                         void *attribute_val_in,
@@ -231,8 +248,6 @@ typedef int WPI_Comm_delete_attr_function(WPI_Comm comm, int comm_keyval,
 typedef void WPI_Comm_errhandler_function(WPI_Comm *, int *, ...);
 typedef WPI_Comm_errhandler_function WPI_Comm_errhandler_fn;
 typedef WPI_Comm_copy_attr_function WPI_Copy_function;
-#if 0
-// TODO: Handle conversions
 typedef int WPI_Datarep_conversion_function(void *userbuf,
                                             WPI_Datatype datatype, int count,
                                             void *filebuf, WPI_Offset position,
@@ -240,16 +255,12 @@ typedef int WPI_Datarep_conversion_function(void *userbuf,
 typedef int WPI_Datarep_extent_function(WPI_Datatype datatype,
                                         WPI_Aint *file_extent,
                                         void *extra_state);
-#endif
 typedef WPI_Comm_delete_attr_function WPI_Delete_function;
 typedef void WPI_File_errhandler_function(WPI_File *, int *, ...);
 typedef WPI_File_errhandler_function WPI_File_errhandler_fn;
 typedef int WPI_Grequest_cancel_function(void *extra_state, int complete);
 typedef int WPI_Grequest_free_function(void *extra_state);
-#if 0
-// TODO: Handle status correctly
 typedef int WPI_Grequest_query_function(void *extra_state, WPI_Status *status);
-#endif
 typedef int WPI_Type_copy_attr_function(WPI_Datatype oldtype, int type_keyval,
                                         void *extra_state,
                                         void *attribute_val_in,
