@@ -175,30 +175,38 @@ extern "C" int MT(Testany)(int count, MT(Request) array_of_requests[],
 }
 
 extern "C" int MT(Waitall)(int count, MT(Request) array_of_requests[],
-                           MT(StatusPtr) status) {
-  if (sizeof(MP(Request)) == sizeof(MT(Request)))
+                           MT(Status) array_of_statuses[]) {
+  if (sizeof(MP(Request)) == sizeof(MT(Request)) &&
+      (MP(StatusPtr))array_of_statuses == MPI_STATUSES_IGNORE)
     return MP(Waitall)(count, (MP(RequestPtr))array_of_requests,
-                       (MP(StatusPtr))status);
+                       MPI_STATUSES_IGNORE);
   std::vector<MP(Request)> reqs(count);
   for (int i = 0; i < count; ++i)
     reqs[i] = (MP(Request))array_of_requests[i];
-  const int ierr = MP(Waitall)(count, reqs.data(), (MP(StatusPtr))status);
+  std::vector<MP(Status)> stats(count);
+  const int ierr = MP(Waitall)(count, reqs.data(), stats.data());
   for (int i = 0; i < count; ++i)
     array_of_requests[i] = (MT(Request))reqs[i];
+  for (int i = 0; i < count; ++i)
+    array_of_statuses[i] = (MT(Status))stats[i];
   return ierr;
 }
 
 extern "C" int MT(Testall)(int count, MT(Request) array_of_requests[],
-                           int *flag, MT(StatusPtr) status) {
-  if (sizeof(MP(Request)) == sizeof(MT(Request)))
+                           int *flag, MT(Status) array_of_statuses[]) {
+  if (sizeof(MP(Request)) == sizeof(MT(Request)) &&
+      (MP(StatusPtr))array_of_statuses == MPI_STATUSES_IGNORE)
     return MP(Testall)(count, (MP(RequestPtr))array_of_requests, flag,
-                       (MP(StatusPtr))status);
+                       MPI_STATUSES_IGNORE);
   std::vector<MP(Request)> reqs(count);
   for (int i = 0; i < count; ++i)
     reqs[i] = (MP(Request))array_of_requests[i];
-  const int ierr = MP(Testall)(count, reqs.data(), flag, (MP(StatusPtr))status);
+  std::vector<MP(Status)> stats(count);
+  const int ierr = MP(Testall)(count, reqs.data(), flag, stats.data());
   for (int i = 0; i < count; ++i)
     array_of_requests[i] = (MT(Request))reqs[i];
+  for (int i = 0; i < count; ++i)
+    array_of_statuses[i] = (MT(Status))stats[i];
   return ierr;
 }
 
@@ -213,8 +221,6 @@ extern "C" int MT(Waitsome)(int incount, MT(Request) array_of_requests[],
   for (int i = 0; i < incount; ++i)
     reqs[i] = (MP(Request))array_of_requests[i];
   std::vector<MP(Status)> stats(incount);
-  for (int i = 0; i < incount; ++i)
-    stats[i] = (MP(Status))array_of_statuses[i];
   const int ierr = MP(Waitsome)(incount, reqs.data(), outcount,
                                 array_of_indices, stats.data());
   for (int i = 0; i < incount; ++i)
@@ -235,8 +241,6 @@ extern "C" int MT(Testsome)(int incount, MT(Request) array_of_requests[],
   for (int i = 0; i < incount; ++i)
     reqs[i] = (MP(Request))array_of_requests[i];
   std::vector<MP(Status)> stats(incount);
-  for (int i = 0; i < incount; ++i)
-    stats[i] = (MP(Status))array_of_statuses[i];
   const int ierr = MP(Testsome)(incount, reqs.data(), outcount,
                                 array_of_indices, stats.data());
   for (int i = 0; i < incount; ++i)
