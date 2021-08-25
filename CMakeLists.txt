@@ -9,7 +9,6 @@ cmake --build build-mpich && cmake --install build-mpich
 
 
 
-
 module load cmake
 rm -rf build-openmpi-ubuntu $HOME/src/c/MPIstuff/mpiwrapper-openmpi-ubuntu
 cmake -S . -B build-openmpi-ubuntu -DCMAKE_CXX_COMPILER=/usr/bin/mpic++ -DCMAKE_Fortran_COMPILER=/usr/bin/mpifort -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-openmpi-ubuntu
@@ -42,7 +41,7 @@ module unload mpi
 
 cmake_minimum_required(VERSION 3.12...3.20)
 project(
-  MPIwrapper VERSION 1.0.0
+  MPIwrapper VERSION 1.1.0
   DESCRIPTION "MPI wrapper"
   LANGUAGES CXX Fortran
   )
@@ -69,10 +68,3 @@ target_link_libraries(mpiwrapper PUBLIC MPI::MPI_CXX MPI::MPI_Fortran)
 install(
   TARGETS mpiwrapper
   )
-
-# configure_file(mpiexec1.in mpiexec1 @ONLY)
-# install(
-#   FILES "${CMAKE_CURRENT_BINARY_DIR}/mpiexec1"
-#   DESTINATION bin
-#   PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-#   )
