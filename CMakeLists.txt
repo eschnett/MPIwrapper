@@ -1,10 +1,10 @@
 #[[
 rm -rf build-openmpi $HOME/src/c/MPIstuff/mpiwrapper-openmpi
-cmake -S . -B build-openmpi -G Ninja -DCMAKE_CXX_COMPILER=mpicxx-openmpi-gcc11 -DCMAKE_Fortran_COMPILER=mpifort-openmpi-gcc11 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-openmpi
+cmake -S . -B build-openmpi -G Ninja -DMPIEXEC_EXECUTABLE=$(which mpiexec-openmpi-gcc11) -DCMAKE_CXX_COMPILER=mpicxx-openmpi-gcc11 -DCMAKE_Fortran_COMPILER=mpifort-openmpi-gcc11 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-openmpi
 cmake --build build-openmpi && cmake --install build-openmpi
 
 rm -rf build-mpich $HOME/src/c/MPIstuff/mpiwrapper-mpich
-cmake -S . -B build-mpich -G Ninja -DCMAKE_CXX_COMPILER=mpicxx-mpich-gcc10 -DCMAKE_Fortran_COMPILER=mpifort-mpich-gcc10 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-mpich
+cmake -S . -B build-mpich -G Ninja -DMPIEXEC_EXECUTABLE=$(which mpiexec-mpich-gcc10) -DCMAKE_CXX_COMPILER=mpicxx-mpich-gcc10 -DCMAKE_Fortran_COMPILER=mpifort-mpich-gcc10 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-mpich
 cmake --build build-mpich && cmake --install build-mpich
 
 
@@ -52,6 +52,10 @@ include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
 
 find_package(MPI REQUIRED)
+message(STATUS "Using MPIEXEC_EXECUTABLE: ${MPIEXEC_EXECUTABLE}")
+if (${MPIEXEC_EXECUTABLE} STREQUAL "MPIEXEC_EXECUTABLE-NOTFOUND")
+  message(FATAL_ERROR "MPIEXEC_EXECUTABLE not set. Set the cmake variable MPIEXEC_EXECUTABLE to point to mpiexec.")
+endif()
 
 configure_file(mpiwrapper-version.h.in mpiwrapper-version.h @ONLY)
 
@@ -67,4 +71,11 @@ target_link_libraries(mpiwrapper PUBLIC MPI::MPI_CXX MPI::MPI_Fortran)
 
 install(
   TARGETS mpiwrapper
+  )
+
+configure_file(mpiwrapper-mpiexec.in mpiwrapper-mpiexec @ONLY)
+install(
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/mpiwrapper-mpiexec"
+  DESTINATION bin
+  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
   )
