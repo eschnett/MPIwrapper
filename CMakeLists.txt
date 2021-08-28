@@ -87,6 +87,26 @@ add_library(mpiwrapper MODULE mpiwrapper.hxx mpiwrapper-version.h mpiwrapper.cxx
 target_include_directories(mpiwrapper PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(mpiwrapper PRIVATE MPI::MPI_CXX MPI::MPI_Fortran)
 
+if(APPLE)
+  # On macOS, check that the plugin `libmpiwrapper.so` is built with a
+  # two-level namespace. If not, it will use the MPI functions
+  # provided by MPItrampoline instead of the "real" MPI, which will
+  # recurse infinitely, leading to a stack overflow and segfault.
+  execute_process(
+    COMMAND otool -hV ${CMAKE_CURRENT_BINARY_DIR}/libmpiwrapper.so
+    OUTPUT_VARIABLE twolevel
+    )
+  if(NOT ("${twolevel}" MATCHES " TWOLEVEL "))
+    message(FATAL_ERROR
+      "Error in libmpiwrapper.so plugin:
+      The plugin libmpiwrapper.so was built without a two-level
+      namespace. This means that it will end up using the MPI
+      functions provided by MPItrampoline instead of those by the
+      actual MPI library. This will recurse infinitely, leading to a
+      stack overflow and segfault.")
+  endif()
+endif()
+
 install(
   TARGETS mpiwrapper
   LIBRARY
