@@ -50,21 +50,24 @@ jobs:
     - name: Configure
       run: |
         if [ ${{matrix.os}} = Darwin -a ${{matrix.mpi}} = MPICH ]; then
+            echo 'os=Darwin, mpi=MPICH'
             cmake -B ${{github.workspace}}/build \
                 -DCMAKE_CXX_COMPILER=g++ \
                 -DCMAKE_Fortran_COMPILER=gfortran \
+                -DMPI_SKIP_GUESSING=TRUE \
                 -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
                 -DMPI_CXX_LIB_NAMES='mpicxx;mpi;pmpi' \
-                -DMPI_mpi_LIBRARY='-L/usr/local/lib;-lmpi' \
-                -DMPI_mpicxx_LIBRARY='-L/usr/local/lib;-lmpicxx' \
-                -DMPI_pmpi_LIBRARY='-L/usr/local/lib;-lpmpi' \
                 -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
-                -DMPI_Fortran_LIB_NAMES=mpifort \
-                -DMPI_mpifort_LIBRARY='-L/usr/local/lib;-lmpifort;-lmpi;-lpmpi' \
+                -DMPI_Fortran_LIB_NAMES='mpifort;mpi;pmpi' \
+                -DMPI_mpi_LIBRARY=/usr/local/lib/libmpi.dylib \
+                -DMPI_mpicxx_LIBRARY=/usr/local/lib/libmpicxx.dylib \
+                -DMPI_mpifort_LIBRARY=/usr/local/lib/libmpifort.dylib \
+                -DMPI_pmpi_LIBRARY=/usr/local/lib/libpmpi.dylib \
                 -DMPIEXEC_EXECUTABLE=/usr/local/bin/mpiexec \
                 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
                 -DCMAKE_INSTALL_PREFIX=$HOME/mpiwrapper-${{matrix.mpi}}
         else
+            echo 'default'
             cmake -B ${{github.workspace}}/build \
                 -DCMAKE_CXX_COMPILER=mpicxx \
                 -DCMAKE_Fortran_COMPILER=mpif90 \
