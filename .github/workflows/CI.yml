@@ -33,7 +33,7 @@ jobs:
         case $(uname) in
         Darwin)
             case "${{matrix.mpi}}" in
-                MPICH) packages='gcc mpich';;
+                MPICH) packages=mpich;;
                 OpenMPI) packages=open-mpi;;
             esac
             brew install ${packages}
@@ -52,8 +52,8 @@ jobs:
         if [ $(uname) = Darwin -a ${{matrix.mpi}} = MPICH ]; then
             echo 'os=Darwin, mpi=MPICH'
             cmake -B ${{github.workspace}}/build \
-                -DCMAKE_CXX_COMPILER=g++ \
-                -DCMAKE_Fortran_COMPILER=gfortran \
+                -DCMAKE_CXX_COMPILER=g++-10 \
+                -DCMAKE_Fortran_COMPILER=gfortran-10 \
                 -DMPI_SKIP_GUESSING=TRUE \
                 -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
                 -DMPI_CXX_LIB_NAMES='mpicxx;mpi;pmpi' \
