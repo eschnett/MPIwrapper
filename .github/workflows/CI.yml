@@ -34,14 +34,19 @@ jobs:
         cache-name: cache-mpi
       with:
         path: ~/mpich-3.4.2
-          key: cache-mpi-${{matrix.os}}-${{matrix.mpi}}-mpich-3.4.2
-          restore-keys: |
-            cache-mpi-${{matrix.os}}-${{matrix.mpi}}-mpich-3.4.2
+          key: "cache-mpi-${{matrix.os}}-${{matrix.mpi}}-mpich-3.4.2"
 
     - name: Install ${{matrix.mpi}}
       run: |
-        case $(uname) in
-        Darwin)
+        case ${RUNNER_OS} in
+        Linux)
+            case "${{matrix.mpi}}" in
+                MPICH) packages=libmpich-dev;;
+                OpenMPI) packages=libopenmpi-dev;;
+            esac
+            sudo apt-get install ${packages}
+            ;;
+        macOS)
             case "${{matrix.mpi}}" in
                 MPICH) packages=hwloc;;
                 OpenMPI) packages=open-mpi;;
@@ -75,18 +80,11 @@ jobs:
                 popd
             fi
             ;;
-        Linux)
-            case "${{matrix.mpi}}" in
-                MPICH) packages=libmpich-dev;;
-                OpenMPI) packages=libopenmpi-dev;;
-            esac
-            sudo apt-get install ${packages}
-            ;;
         esac
 
     - name: Configure
       run: |
-        if [ $(uname) = Darwin -a ${{matrix.mpi}} = MPICH ]; then
+        if [ ${RUNNER_OS} = macOS -a ${{matrix.mpi}} = MPICH ]; then
             echo 'os=Darwin, mpi=MPICH'
             #TODO: try to remove libgfortran
             cmake -B ${{github.workspace}}/build \
