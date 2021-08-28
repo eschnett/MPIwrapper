@@ -34,9 +34,9 @@ jobs:
         cache-name: cache-mpi
       with:
         path: ~/mpich-3.4.2
-          key: ${{env.cache-name}}-${{matrix.os}}-${{matrix.mpi}}-mpich-3.4.2
+          key: cache-mpi-${{matrix.os}}-${{matrix.mpi}}-mpich-3.4.2
           restore-keys: |
-            ${{env.cache-name}}-${{matrix.os}}-${{matrix.mpi}}-mpich-3.4.2
+            cache-mpi-${{matrix.os}}-${{matrix.mpi}}-mpich-3.4.2
 
     - name: Install ${{matrix.mpi}}
       run: |
