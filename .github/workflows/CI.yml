@@ -33,7 +33,7 @@ jobs:
         case $(uname) in
         Darwin)
             case "${{matrix.mpi}}" in
-                MPICH) packages=mpich;;
+                MPICH) packages='gcc mpich';;
                 OpenMPI) packages=open-mpi;;
             esac
             brew install ${packages}
