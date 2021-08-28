@@ -51,6 +51,7 @@ jobs:
       run: |
         if [ $(uname) = Darwin -a ${{matrix.mpi}} = MPICH ]; then
             echo 'os=Darwin, mpi=MPICH'
+            #TODO: remove libgfortran
             cmake -B ${{github.workspace}}/build \
                 -DCMAKE_CXX_COMPILER=g++-10 \
                 -DCMAKE_Fortran_COMPILER=gfortran-10 \
@@ -66,7 +67,12 @@ jobs:
                 -DMPI_pmpi_LIBRARY=/usr/local/lib/libpmpi.dylib \
                 -DMPIEXEC_EXECUTABLE=/usr/local/bin/mpiexec \
                 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-                -DCMAKE_INSTALL_PREFIX=$HOME/mpiwrapper-${{matrix.mpi}}
+                -DCMAKE_INSTALL_PREFIX=$HOME/mpiwrapper-${{matrix.mpi}} || true
+            echo "/Users/runner/work/MPIwrapper/MPIwrapper/build/CMakeFiles/CMakeOutput.log"
+            cat "/Users/runner/work/MPIwrapper/MPIwrapper/build/CMakeFiles/CMakeError.log"
+            echo "/Users/runner/work/MPIwrapper/MPIwrapper/build/CMakeFiles/CMakeOutput.log"
+            cat "/Users/runner/work/MPIwrapper/MPIwrapper/build/CMakeFiles/CMakeError.log"
+            false
         else
             echo 'default'
             cmake -B ${{github.workspace}}/build \
