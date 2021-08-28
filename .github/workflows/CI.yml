@@ -58,7 +58,8 @@ jobs:
                 -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
                 -DMPI_CXX_LIB_NAMES='mpicxx;mpi;pmpi' \
                 -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
-                -DMPI_Fortran_LIB_NAMES='mpifort;mpi;pmpi' \
+                -DMPI_Fortran_LIB_NAMES='mpifort;mpi;pmpi;gfortran' \
+                -DMPI_gfortran_LIBRARY=/usr/local/opt/gcc/lib/gcc/11/libgfortran.dylib \
                 -DMPI_mpi_LIBRARY=/usr/local/lib/libmpi.dylib \
                 -DMPI_mpicxx_LIBRARY=/usr/local/lib/libmpicxx.dylib \
                 -DMPI_mpifort_LIBRARY=/usr/local/lib/libmpifort.dylib \
