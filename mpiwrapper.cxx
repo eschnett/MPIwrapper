@@ -335,7 +335,7 @@ extern "C" int MT(Op_create)(MT(User_function) * user_fn, int commute,
   if (sizeof(MP(Op)) == sizeof(MT(Op)))
     return MP(Op_create)((MP(User_function) *)user_fn, commute, (MP(OpPtr))op);
   const int n = Op_map_create(user_fn);
-  const MPI_User_function *const mpi_user_fn = op_map[n].mpi_user_fn;
+  MPI_User_function *const mpi_user_fn = op_map[n].mpi_user_fn;
   const int ierr = MP(Op_create)(mpi_user_fn, commute, (MP(OpPtr))op);
   op_map[n].mpi_op = *op;
   return ierr;
