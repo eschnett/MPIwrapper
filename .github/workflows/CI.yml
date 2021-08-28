@@ -28,17 +28,17 @@ jobs:
     - name: Install ${{matrix.mpi}}
       run: |
         case $(uname) in
-        (Darwin)
+        Darwin)
             case "${{matrix.mpi}}" in
                 MPICH) packages=libmpich-dev;;
                 OpenMPI) packages=libopenmpi-dev;;
             esac
             sudo apt-get install ${packages}
             ;;
-        (Linux)
+        Linux)
             case "${{matrix.mpi}}" in
-                MPICH) packages=mpich
-                OpenMPI) packages=openmpi
+                MPICH) packages=mpich;;
+                OpenMPI) packages=openmpi;;
             esac
             brew install ${packages}
             ;;
