@@ -1,11 +1,29 @@
 #[[
 rm -rf build-openmpi $HOME/src/c/MPIstuff/mpiwrapper-openmpi
 cmake -S . -B build-openmpi -G Ninja -DMPIEXEC_EXECUTABLE=$(which mpiexec-openmpi-gcc11) -DCMAKE_CXX_COMPILER=mpicxx-openmpi-gcc11 -DCMAKE_Fortran_COMPILER=mpifort-openmpi-gcc11 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-openmpi
-cmake --build build-openmpi && cmake --install build-openmpi
+cmake --build build-openmpi --verbose && cmake --install build-openmpi --verbose
 
 rm -rf build-mpich $HOME/src/c/MPIstuff/mpiwrapper-mpich
-cmake -S . -B build-mpich -G Ninja -DMPIEXEC_EXECUTABLE=$(which mpiexec-mpich-gcc10) -DCMAKE_CXX_COMPILER=mpicxx-mpich-gcc10 -DCMAKE_Fortran_COMPILER=mpifort-mpich-gcc10 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-mpich
-cmake --build build-mpich && cmake --install build-mpich
+# Avoid the flag `-flat_namespace` in MPICH's mpicxx
+# cmake -S . -B build-mpich -G Ninja -DMPIEXEC_EXECUTABLE=$(which mpiexec-mpich-gcc10) -DCMAKE_CXX_COMPILER=mpicxx-mpich-gcc10 -DCMAKE_Fortran_COMPILER=mpifort-mpich-gcc10 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-mpich
+cmake \
+    -S . \
+    -B build-mpich \
+    -G Ninja \
+    -DCMAKE_CXX_COMPILER=g++-mp-10 \
+    -DCMAKE_Fortran_COMPILER=gfortran-mp-10 \
+    -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc10 \
+    -DMPI_CXX_LIB_NAMES='mpicxx;mpi;pmpi' \
+    -DMPI_mpi_LIBRARY='-L/opt/local/lib/mpich-gcc10;-lmpi' \
+    -DMPI_mpicxx_LIBRARY='-L/opt/local/lib/mpich-gcc10;-lmpicxx' \
+    -DMPI_pmpi_LIBRARY='-L/opt/local/lib/mpich-gcc10;-lpmpi' \
+    -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc10 \
+    -DMPI_Fortran_LIB_NAMES=mpifort \
+    -DMPI_mpifort_LIBRARY='-L/opt/local/lib/mpich-gcc10;-lmpifort;-lmpi;-lpmpi' \
+    -DMPIEXEC_EXECUTABLE=/opt/local/bin/mpiexec-mpich-gcc10 \
+    -DCMAKE_BUILD_TYPE=Debug \
+    -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-mpich
+cmake --build build-mpich --verbose && cmake --install build-mpich --verbose
 
 
 
@@ -41,7 +59,7 @@ module unload mpi
 
 cmake_minimum_required(VERSION 3.12...3.20)
 project(
-  MPIwrapper VERSION 1.1.0
+  MPIwrapper VERSION 1.1.1
   DESCRIPTION "MPI wrapper"
   LANGUAGES CXX Fortran
   )
@@ -65,12 +83,14 @@ add_custom_command(
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mpiwrapper.f.in ${CMAKE_CURRENT_SOURCE_DIR}/mpi-constants-f.inc
   VERBATIM)
 
-add_library(mpiwrapper SHARED mpiwrapper.hxx mpiwrapper-version.h mpiwrapper.cxx mpiwrapper.f)
+add_library(mpiwrapper MODULE mpiwrapper.hxx mpiwrapper-version.h mpiwrapper.cxx mpiwrapper.f)
 target_include_directories(mpiwrapper PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(mpiwrapper PUBLIC MPI::MPI_CXX MPI::MPI_Fortran)
+target_link_libraries(mpiwrapper PRIVATE MPI::MPI_CXX MPI::MPI_Fortran)
 
 install(
   TARGETS mpiwrapper
+  LIBRARY
+  DESTINATION lib
   )
 
 configure_file(mpiwrapper-mpiexec.in mpiwrapper-mpiexec @ONLY)
