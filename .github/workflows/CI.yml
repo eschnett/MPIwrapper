@@ -53,8 +53,8 @@ jobs:
             echo 'os=Darwin, mpi=MPICH'
             #TODO: remove libgfortran
             cmake -B ${{github.workspace}}/build \
-                -DCMAKE_CXX_COMPILER=g++-10 \
-                -DCMAKE_Fortran_COMPILER=gfortran-10 \
+                -DCMAKE_CXX_COMPILER=g++-11 \
+                -DCMAKE_Fortran_COMPILER=gfortran-11 \
                 -DMPI_SKIP_GUESSING=TRUE \
                 -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
                 -DMPI_CXX_LIB_NAMES='mpicxx;mpi;pmpi' \
