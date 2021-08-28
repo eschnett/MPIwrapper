@@ -61,13 +61,13 @@ jobs:
                 -DCMAKE_Fortran_COMPILER=gfortran-11 \
                 -DMPI_SKIP_COMPILER_WRAPPER=TRUE \
                 -DMPI_SKIP_GUESSING=TRUE \
-                -DMPI_DETERMINE_Fortran_CAPABILITIES=FALSE \
                 -DMPI_CXX_COMPILER=g++-11 \
                 -DMPI_Fortran_COMPILER=gfortran-11 \
                 -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
                 -DMPI_CXX_LIB_NAMES='mpicxx;mpi;pmpi' \
                 -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
                 -DMPI_Fortran_LIB_NAMES='mpifort;mpi;pmpi;gfortran' \
+                -DMPI_Fortran_HAVE_F08_MODULE=FALSE \
                 -DMPI_gfortran_LIBRARY=/usr/local/opt/gcc/lib/gcc/11/libgfortran.dylib \
                 -DMPI_mpi_LIBRARY=/usr/local/lib/libmpi.dylib \
                 -DMPI_mpicxx_LIBRARY=/usr/local/lib/libmpicxx.dylib \
