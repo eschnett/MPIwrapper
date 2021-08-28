@@ -37,6 +37,7 @@ jobs:
                 OpenMPI) packages=open-mpi;;
             esac
             brew install ${packages}
+            # TODO
             ls -l /usr/local/bin
             ls -l /usr/local/include
             ls -l /usr/local/lib
@@ -59,6 +60,8 @@ jobs:
                 -DCMAKE_CXX_COMPILER=g++-11 \
                 -DCMAKE_Fortran_COMPILER=gfortran-11 \
                 -DMPI_SKIP_GUESSING=TRUE \
+                -DMPI_CXX_COMPILER=g++-11 \
+                -DMPI_Fortran_COMPILER=gfortran-11 \
                 -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
                 -DMPI_CXX_LIB_NAMES='mpicxx;mpi;pmpi' \
                 -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
