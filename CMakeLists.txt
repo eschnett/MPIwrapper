@@ -14,12 +14,12 @@ cmake \
     -DCMAKE_Fortran_COMPILER=gfortran-mp-10 \
     -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc10 \
     -DMPI_CXX_LIB_NAMES='mpicxx;mpi;pmpi' \
-    -DMPI_mpi_LIBRARY='-L/opt/local/lib/mpich-gcc10;-lmpi' \
-    -DMPI_mpicxx_LIBRARY='-L/opt/local/lib/mpich-gcc10;-lmpicxx' \
-    -DMPI_pmpi_LIBRARY='-L/opt/local/lib/mpich-gcc10;-lpmpi' \
     -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc10 \
-    -DMPI_Fortran_LIB_NAMES=mpifort \
-    -DMPI_mpifort_LIBRARY='-L/opt/local/lib/mpich-gcc10;-lmpifort;-lmpi;-lpmpi' \
+    -DMPI_Fortran_LIB_NAMES='mpifort;mpi;pmpi' \
+    -DMPI_mpi_LIBRARY=/opt/local/lib/mpich-gcc10/libmpi.dylib \
+    -DMPI_mpicxx_LIBRARY=/opt/local/lib/mpich-gcc10/libmpicxx.dylib \
+    -DMPI_mpifort_LIBRARY=/opt/local/lib/mpich-gcc10/libmpifort.dylib \
+    -DMPI_pmpi_LIBRARY=/opt/local/lib/mpich-gcc10/libpmpi.dylib \
     -DMPIEXEC_EXECUTABLE=/opt/local/bin/mpiexec-mpich-gcc10 \
     -DCMAKE_BUILD_TYPE=Debug \
     -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-mpich
@@ -95,12 +95,9 @@ if(APPLE)
   # recurse infinitely, leading to a stack overflow and segfault.
   add_custom_command(
     TARGET mpiwrapper POST_BUILD
-    COMMAND if ! otool -hV ${CMAKE_CURRENT_BINARY_DIR}/libmpiwrapper.so | grep -q ' TWOLEVEL '\; then
-                echo "*** ERROR: libmpiwrapper.so plugin does not use a two-level namespace"\;
-                false\;
-            fi
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/check_twolevel.sh ${CMAKE_CURRENT_BINARY_DIR}/libmpiwrapper.so
     COMMENT "Checking whether libmpiwrapper.so plugin uses a two-level namespace..."
-    # VERBATIM
+    VERBATIM
     )
   # if(NOT ("${twolevel}" MATCHES " TWOLEVEL "))
   #   message(FATAL_ERROR
