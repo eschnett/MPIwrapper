@@ -59,6 +59,7 @@ jobs:
             cmake -B ${{github.workspace}}/build \
                 -DCMAKE_CXX_COMPILER=g++-11 \
                 -DCMAKE_Fortran_COMPILER=gfortran-11 \
+                -DMPI_SKIP_COMPILER_WRAPPER=TRUE \
                 -DMPI_SKIP_GUESSING=TRUE \
                 -DMPI_CXX_COMPILER=g++-11 \
                 -DMPI_Fortran_COMPILER=gfortran-11 \
