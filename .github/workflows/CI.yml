@@ -49,7 +49,7 @@ jobs:
 
     - name: Configure
       run: |
-        if [ ${{matrix.os}} = Darwin -a ${{matrix.mpi}} = MPICH ]; then
+        if [ $(uname) = Darwin -a ${{matrix.mpi}} = MPICH ]; then
             echo 'os=Darwin, mpi=MPICH'
             cmake -B ${{github.workspace}}/build \
                 -DCMAKE_CXX_COMPILER=g++ \
