@@ -30,8 +30,8 @@ jobs:
         case $(uname) in
         Darwin)
             case "${{matrix.mpi}}" in
-                MPICH) packages='gcc mpich';;
-                OpenMPI) packages='gcc open-mpi';;
+                MPICH) packages=mpich;;
+                OpenMPI) packages=open-mpi;;
             esac
             brew install ${packages}
             ;;
@@ -48,7 +48,7 @@ jobs:
       run: |
         cmake -B ${{github.workspace}}/build \
             -DCMAKE_CXX_COMPILER=mpicxx \
-            -DCMAKE_Fortran_COMPILER=mpifort \
+            -DCMAKE_Fortran_COMPILER=mpif90 \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DCMAKE_INSTALL_PREFIX=$HOME/mpiwrapper-${{matrix.mpi}}
 
