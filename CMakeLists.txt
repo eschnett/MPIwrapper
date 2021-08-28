@@ -81,7 +81,8 @@ add_custom_command(
   OUTPUT mpiwrapper.f
   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/fortran-cpp.sh ${CMAKE_CURRENT_SOURCE_DIR}/mpiwrapper.f.in mpiwrapper.f
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mpiwrapper.f.in ${CMAKE_CURRENT_SOURCE_DIR}/mpi-constants-f.inc
-  VERBATIM)
+  VERBATIM
+  )
 
 add_library(mpiwrapper MODULE mpiwrapper.hxx mpiwrapper-version.h mpiwrapper.cxx mpiwrapper.f)
 target_include_directories(mpiwrapper PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
@@ -92,19 +93,25 @@ if(APPLE)
   # two-level namespace. If not, it will use the MPI functions
   # provided by MPItrampoline instead of the "real" MPI, which will
   # recurse infinitely, leading to a stack overflow and segfault.
-  execute_process(
-    COMMAND otool -hV ${CMAKE_CURRENT_BINARY_DIR}/libmpiwrapper.so
-    OUTPUT_VARIABLE twolevel
+  add_custom_command(
+    TARGET mpiwrapper POST_BUILD
+    COMMAND if ! otool -hV ${CMAKE_CURRENT_BINARY_DIR}/libmpiwrapper.so | grep -q ' TWOLEVEL '\; then
+                echo "*** ERROR: libmpiwrapper.so plugin does not use a two-level namespace"\;
+                false\;
+            fi
+    COMMENT "Checking whether libmpiwrapper.so plugin uses a two-level namespace..."
+    # VERBATIM
     )
-  if(NOT ("${twolevel}" MATCHES " TWOLEVEL "))
-    message(FATAL_ERROR
-      "Error in libmpiwrapper.so plugin:
-      The plugin libmpiwrapper.so was built without a two-level
-      namespace. This means that it will end up using the MPI
-      functions provided by MPItrampoline instead of those by the
-      actual MPI library. This will recurse infinitely, leading to a
-      stack overflow and segfault.")
-  endif()
+  # if(NOT ("${twolevel}" MATCHES " TWOLEVEL "))
+  #   message(FATAL_ERROR
+  #     "Error in libmpiwrapper.so plugin:
+  #     The plugin libmpiwrapper.so was built without a two-level
+  #     namespace. This means that it will end up using the MPI
+  #     functions provided by MPItrampoline instead of those by the
+  #     actual MPI library. This will recurse infinitely, leading to a
+  #     stack overflow and segfault."
+  #     )
+  # endif()
 endif()
 
 install(
