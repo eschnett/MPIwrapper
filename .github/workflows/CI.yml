@@ -15,9 +15,6 @@ jobs:
       matrix:
         os: [ubuntu-20.04, macos-11]
         mpi: [MPICH, OpenMPI]
-        # exclude:
-        #   - os: macos-11
-        #     mpi: OpenMPI
 
     # The CMake configure and build commands are platform agnostic and
     # should work equally well on Windows or Mac. You can convert this
