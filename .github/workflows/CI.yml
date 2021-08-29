@@ -28,9 +28,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: MacPorts
-      uses: keepitsimpletech/actions/setup-macports@setup-macports/releases/v1
-
     - name: Install ${{matrix.mpi}}
       run: |
         case ${RUNNER_OS} in
