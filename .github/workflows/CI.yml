@@ -28,13 +28,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Cache built MPI libraries
-      uses: actions/cache@v2
-      env:
-        cache-name: cache-mpi
-      with:
-        path: ~/mpich-3.4.2
-        key: cache-mpi-${{matrix.os}}-${{matrix.mpi}}-mpich-3.4.2
+    - name: MacPorts
+      uses: keepitsimpletech/actions/setup-macports@setup-macports/releases/v1
 
     - name: Install ${{matrix.mpi}}
       run: |
@@ -47,40 +42,74 @@ jobs:
             sudo apt-get install ${packages}
             ;;
         macOS)
-            case "${{matrix.mpi}}" in
-                MPICH) packages=hwloc;;
-                OpenMPI) packages=open-mpi;;
-            esac
-            brew install ${packages}
-            # TODO
-            ls -l /usr/local/bin
-            ls -l /usr/local/include
-            ls -l /usr/local/lib
+            # case "${{matrix.mpi}}" in
+            #     MPICH) packages=mpich;;
+            #     OpenMPI) packages=open-mpi;;
+            # esac
+            # brew install ${packages}
 
-            # Build MPICH only if it was not restored from cache
-            if [ ! -d $HOME/mpich-3.4.2 ]; then
-                pushd .
-                wget http://www.mpich.org/static/downloads/3.4.2/mpich-3.4.2.tar.gz
-                tar xzf mpich-3.4.2.tar.gz
-                cd mpich-3.4.2
-                mkdir build
-                cd build
-                env \
-                    CC=gcc-11 \
-                    CXX=g++-11 \
-                    FC=gfortran-11 \
-                    FFLAGS=-fallow-argument-mismatch \
-                ../configure \
-                    --enable-fortran=all \
-                    --enable-threads=multiple \
-                    --enable-two-level-namespace \
-                    --prefix=$HOME/mpich-3.4.2
-                make -j$(nproc)
-                make -j$(nproc) install
-                popd
-            fi
+            # Install MacPorts
+            wget https://github.com/macports/macports-base/releases/download/v2.7.1/MacPorts-2.7.1-11-BigSur.pkg
+            sudo /usr/sbin/installer -pkg MacPorts-2.7.1-11-BigSur.pkg -target /
+            rm MacPorts-2.7.1-11-BigSur.pkg
+            export "PATH=/opt/local/bin:/opt/local/sbin:${PATH}"
+            sudo port install mpich +fortran
             ;;
         esac
+
+    # - name: Cache built MPI libraries
+    #   uses: actions/cache@v2
+    #   env:
+    #     cache-name: cache-mpi
+    #   with:
+    #     path: ~/mpich-3.4.2
+    #     key: cache-mpi-${{matrix.os}}-${{matrix.mpi}}-mpich-3.4.2
+    # 
+    # - name: Install ${{matrix.mpi}}
+    #   run: |
+    #     case ${RUNNER_OS} in
+    #     Linux)
+    #         case "${{matrix.mpi}}" in
+    #             MPICH) packages=libmpich-dev;;
+    #             OpenMPI) packages=libopenmpi-dev;;
+    #         esac
+    #         sudo apt-get install ${packages}
+    #         ;;
+    #     macOS)
+    #         case "${{matrix.mpi}}" in
+    #             MPICH) packages=hwloc;;
+    #             OpenMPI) packages=open-mpi;;
+    #         esac
+    #         brew install ${packages}
+    #         # TODO
+    #         ls -l /usr/local/bin
+    #         ls -l /usr/local/include
+    #         ls -l /usr/local/lib
+    # 
+    #         # Build MPICH only if it was not restored from cache
+    #         if [ ! -d $HOME/mpich-3.4.2 ]; then
+    #             pushd .
+    #             wget http://www.mpich.org/static/downloads/3.4.2/mpich-3.4.2.tar.gz
+    #             tar xzf mpich-3.4.2.tar.gz
+    #             cd mpich-3.4.2
+    #             mkdir build
+    #             cd build
+    #             env \
+    #                 CC=gcc-11 \
+    #                 CXX=g++-11 \
+    #                 FC=gfortran-11 \
+    #                 FFLAGS=-fallow-argument-mismatch \
+    #             ../configure \
+    #                 --enable-fortran=all \
+    #                 --enable-threads=multiple \
+    #                 --enable-two-level-namespace \
+    #                 --prefix=$HOME/mpich-3.4.2
+    #             make -j$(nproc)
+    #             make -j$(nproc) install
+    #             popd
+    #         fi
+    #         ;;
+    #     esac
 
     - name: Configure
       run: |
