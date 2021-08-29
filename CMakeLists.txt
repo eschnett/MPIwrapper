@@ -25,6 +25,10 @@ cmake \
     -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-mpich
 cmake --build build-mpich --verbose && cmake --install build-mpich --verbose
 
+rm -rf build-mpich-twolevel $HOME/src/c/MPIstuff/mpiwrapper-mpich-twolevel
+cmake -S . -B build-mpich-twolevel -G Ninja -DMPIEXEC_EXECUTABLE=$HOME/mpich-3.4.2/bin/mpiexec -DCMAKE_CXX_COMPILER=$HOME/mpich-3.4.2/bin/mpicxx -DCMAKE_Fortran_COMPILER=$HOME/mpich-3.4.2/bin/mpifort -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-mpich-twolevel
+cmake --build build-mpich-twolevel --verbose && cmake --install build-mpich-twolevel --verbose
+
 
 
 module load cmake

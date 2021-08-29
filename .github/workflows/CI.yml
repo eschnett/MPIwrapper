@@ -49,6 +49,7 @@ jobs:
             echo /opt/local/bin >> $GITHUB_PATH
             echo /opt/local/sbin >> $GITHUB_PATH
             export "PATH=/opt/local/bin:/opt/local/sbin:$PATH"
+            sudo port sync
 
             case "${{matrix.mpi}}" in
                 MPICH) packages='mpich-gcc10 +fortran';;
@@ -78,6 +79,19 @@ jobs:
                 # in `libmpiwrapper.so` would at run-time be resolved
                 # to MPItrampoline instead of MPICH, leading to an
                 # infinite recursion, stack overflow, and segfault.
+                #
+                # Even when using MPICH this way, the Fortran MPI
+                # functions do not work. They are implemented by
+                # calling the respective C MPI functions, which live
+                # in a different shared library. MPICH's flat
+                # namespace means that the Fortran MPI functions then
+                # call the MPItrampoline C functions.
+                #
+                # Configuring MPICH with the option
+                # `--enable-two-level-namespace` avoids this problem.
+                # We currently don't do this because we would need to
+                # build MPICH from source, which is a bit tedious to
+                # implement here.
                 cmake -B ${{github.workspace}}/build \
                     -DCMAKE_CXX_COMPILER=g++-mp-10 \
                     -DCMAKE_Fortran_COMPILER=gfortran-mp-10 \
