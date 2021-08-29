@@ -30,114 +30,59 @@ jobs:
 
     - name: Install ${{matrix.mpi}}
       run: |
-        case ${RUNNER_OS} in
+        case $RUNNER_OS in
         Linux)
             case "${{matrix.mpi}}" in
                 MPICH) packages=libmpich-dev;;
                 OpenMPI) packages=libopenmpi-dev;;
             esac
-            sudo apt-get install ${packages}
+            sudo apt-get install $packages
             ;;
         macOS)
             # case "${{matrix.mpi}}" in
             #     MPICH) packages=mpich;;
             #     OpenMPI) packages=open-mpi;;
             # esac
-            # brew install ${packages}
+            # brew install $packages
 
             # Install MacPorts
             wget https://github.com/macports/macports-base/releases/download/v2.7.1/MacPorts-2.7.1-11-BigSur.pkg
             sudo /usr/sbin/installer -pkg MacPorts-2.7.1-11-BigSur.pkg -target /
             rm MacPorts-2.7.1-11-BigSur.pkg
-            export "PATH=/opt/local/bin:/opt/local/sbin:${PATH}"
-            sudo port install mpich +fortran
+            echo /opt/local/bin >> $GITHUB_PATH
+            echo /opt/local/sbin >> $GITHUB_PATH
+            export "PATH=/opt/local/bin:/opt/local/sbin:$PATH"
+
+            case "${{matrix.mpi}}" in
+                MPICH) packages='mpich-gcc10 +fortran';;
+                OpenMPI) packages='openmpi-gcc11 +fortran';;
+            esac
+            sudo port install $packages
             ;;
         esac
 
-    # - name: Cache built MPI libraries
-    #   uses: actions/cache@v2
-    #   env:
-    #     cache-name: cache-mpi
-    #   with:
-    #     path: ~/mpich-3.4.2
-    #     key: cache-mpi-${{matrix.os}}-${{matrix.mpi}}-mpich-3.4.2
-    # 
-    # - name: Install ${{matrix.mpi}}
-    #   run: |
-    #     case ${RUNNER_OS} in
-    #     Linux)
-    #         case "${{matrix.mpi}}" in
-    #             MPICH) packages=libmpich-dev;;
-    #             OpenMPI) packages=libopenmpi-dev;;
-    #         esac
-    #         sudo apt-get install ${packages}
-    #         ;;
-    #     macOS)
-    #         case "${{matrix.mpi}}" in
-    #             MPICH) packages=hwloc;;
-    #             OpenMPI) packages=open-mpi;;
-    #         esac
-    #         brew install ${packages}
-    #         # TODO
-    #         ls -l /usr/local/bin
-    #         ls -l /usr/local/include
-    #         ls -l /usr/local/lib
-    # 
-    #         # Build MPICH only if it was not restored from cache
-    #         if [ ! -d $HOME/mpich-3.4.2 ]; then
-    #             pushd .
-    #             wget http://www.mpich.org/static/downloads/3.4.2/mpich-3.4.2.tar.gz
-    #             tar xzf mpich-3.4.2.tar.gz
-    #             cd mpich-3.4.2
-    #             mkdir build
-    #             cd build
-    #             env \
-    #                 CC=gcc-11 \
-    #                 CXX=g++-11 \
-    #                 FC=gfortran-11 \
-    #                 FFLAGS=-fallow-argument-mismatch \
-    #             ../configure \
-    #                 --enable-fortran=all \
-    #                 --enable-threads=multiple \
-    #                 --enable-two-level-namespace \
-    #                 --prefix=$HOME/mpich-3.4.2
-    #             make -j$(nproc)
-    #             make -j$(nproc) install
-    #             popd
-    #         fi
-    #         ;;
-    #     esac
-
     - name: Configure
       run: |
-        if [ ${RUNNER_OS} = macOS -a ${{matrix.mpi}} = MPICH ]; then
+        if [ $RUNNER_OS = macOS -a ${{matrix.mpi}} = MPICH ]; then
             echo 'os=Darwin, mpi=MPICH'
-            #TODO: try to remove libgfortran
             cmake -B ${{github.workspace}}/build \
-                -DCMAKE_CXX_COMPILER=g++-11 \
-                -DCMAKE_Fortran_COMPILER=gfortran-11 \
-                -DMPI_SKIP_COMPILER_WRAPPER=TRUE \
-                -DMPI_SKIP_GUESSING=TRUE \
-                -DMPI_CXX_COMPILER=g++-11 \
-                -DMPI_Fortran_COMPILER=gfortran-11 \
-                -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
+                -DCMAKE_CXX_COMPILER=g++-mp-10 \
+                -DCMAKE_Fortran_COMPILER=gfortran-mp-10 \
+                -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc10 \
                 -DMPI_CXX_LIB_NAMES='mpicxx;mpi;pmpi' \
-                -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
-                -DMPI_Fortran_LIB_NAMES='mpifort;mpi;pmpi;gfortran' \
-                -DMPI_Fortran_HAVE_F08_MODULE=FALSE \
-                -DMPI_gfortran_LIBRARY=/usr/local/opt/gcc/lib/gcc/11/libgfortran.dylib \
-                -DMPI_mpi_LIBRARY=/usr/local/lib/libmpi.dylib \
-                -DMPI_mpicxx_LIBRARY=/usr/local/lib/libmpicxx.dylib \
-                -DMPI_mpifort_LIBRARY=/usr/local/lib/libmpifort.dylib \
-                -DMPI_pmpi_LIBRARY=/usr/local/lib/libpmpi.dylib \
-                -DMPIEXEC_EXECUTABLE=/usr/local/bin/mpiexec \
+                -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc10 \
+                -DMPI_Fortran_LIB_NAMES='mpifort;mpi;pmpi' \
+                -DMPI_mpi_LIBRARY=/opt/local/lib/mpich-gcc10/libmpi.dylib \
+                -DMPI_mpicxx_LIBRARY=/opt/local/lib/mpich-gcc10/libmpicxx.dylib \
+                -DMPI_mpifort_LIBRARY=/opt/local/lib/mpich-gcc10/libmpifort.dylib \
+                -DMPI_pmpi_LIBRARY=/opt/local/lib/mpich-gcc10/libpmpi.dylib \
+                -DMPIEXEC_EXECUTABLE=/opt/local/bin/mpiexec-mpich-gcc10 \
                 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
                 -DCMAKE_INSTALL_PREFIX=$HOME/mpiwrapper-${{matrix.mpi}} || true
-            echo "/Users/runner/work/MPIwrapper/MPIwrapper/build/CMakeFiles/CMakeOutput.log"
-            cat "/Users/runner/work/MPIwrapper/MPIwrapper/build/CMakeFiles/CMakeError.log"
-            echo "/Users/runner/work/MPIwrapper/MPIwrapper/build/CMakeFiles/CMakeOutput.log"
-            cat "/Users/runner/work/MPIwrapper/MPIwrapper/build/CMakeFiles/CMakeError.log"
-            false
+            echo "/Users/runner/work/MPIwrapper/MPIwrapper/build/CMakeFiles/CMakeOutput.log" || true
+            cat "/Users/runner/work/MPIwrapper/MPIwrapper/build/CMakeFiles/CMakeError.log" || true
+            echo "/Users/runner/work/MPIwrapper/MPIwrapper/build/CMakeFiles/CMakeOutput.log" || true
+            cat "/Users/runner/work/MPIwrapper/MPIwrapper/build/CMakeFiles/CMakeError.log" || true
         else
             echo 'default'
             cmake -B ${{github.workspace}}/build \
