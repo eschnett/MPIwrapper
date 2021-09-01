@@ -63,7 +63,8 @@ module unload mpi
 
 cmake_minimum_required(VERSION 3.12...3.20)
 project(
-  MPIwrapper VERSION 1.1.1
+  MPIwrapper
+  VERSION 2.0.0
   DESCRIPTION "MPI wrapper"
   LANGUAGES CXX Fortran
   )
@@ -79,16 +80,53 @@ if (${MPIEXEC_EXECUTABLE} STREQUAL "MPIEXEC_EXECUTABLE-NOTFOUND")
   message(FATAL_ERROR "MPIEXEC_EXECUTABLE not set. Set the cmake variable MPIEXEC_EXECUTABLE to point to mpiexec.")
 endif()
 
-configure_file(mpiwrapper-version.h.in mpiwrapper-version.h @ONLY)
+configure_file(mpiwrapper_version.h.in mpiwrapper_version.h @ONLY)
 
 add_custom_command(
-  OUTPUT mpiwrapper.f
-  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/fortran-cpp.sh ${CMAKE_CURRENT_SOURCE_DIR}/mpiwrapper.f.in mpiwrapper.f
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mpiwrapper.f.in ${CMAKE_CURRENT_SOURCE_DIR}/mpi-constants-f.inc
-  VERBATIM
+  OUTPUT mpiabi_declarations.h
+  COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/generate_mpiabi_declarations.py >mpiabi_declarations.h
+  DEPENDS
+  ${CMAKE_CURRENT_SOURCE_DIR}/generate_mpiabi_declarations.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/mpi_constants.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/mpi_functions.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/mpi_constants_fortran.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/mpi_functions_fortran.py
   )
 
-add_library(mpiwrapper MODULE mpiwrapper.hxx mpiwrapper-version.h mpiwrapper.cxx mpiwrapper.f)
+add_custom_command(
+  OUTPUT mpiwrapper_definitions.h
+  COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/generate_mpiwrapper_definitions.py >mpiwrapper_definitions.h
+  DEPENDS
+  ${CMAKE_CURRENT_SOURCE_DIR}/generate_mpiwrapper_definitions.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/mpi_constants.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/mpi_functions.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/mpi_functions_fortran.py
+  )
+
+add_custom_command(
+  OUTPUT mpiwrapper_definitions_fortran.h
+  COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/generate_mpiwrapper_definitions_fortran.py >mpiwrapper_definitions_fortran.h
+  DEPENDS
+  ${CMAKE_CURRENT_SOURCE_DIR}/generate_mpiwrapper_definitions_fortran.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/mpi_constants_fortran.py
+  )
+
+# add_custom_command(
+#   OUTPUT mpiwrapper.f
+#   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/fortran_cpp.sh ${CMAKE_CURRENT_SOURCE_DIR}/mpiwrapper.f.in mpiwrapper.f
+#   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mpiwrapper.f.in ${CMAKE_CURRENT_SOURCE_DIR}/mpi-constants-f.inc
+#   VERBATIM
+#   )
+
+add_library(mpiwrapper MODULE
+  mpiabi.h mpiabi_declarations.h
+  mpiwrapper_version.h
+  mpiwrapper.cxx mpiwrapper.hxx mpiwrapper_definitions.h
+  mpiwrapper.f mpiwrapper_definitions_fortran.h)
+# set_target_properties(mpiwrapper
+#   PROPERTIES
+#   SOVERSION 2.0.0
+# )
 target_include_directories(mpiwrapper PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(mpiwrapper PRIVATE MPI::MPI_CXX MPI::MPI_Fortran)
 
@@ -103,16 +141,6 @@ if(APPLE)
     COMMENT "Checking whether libmpiwrapper.so plugin uses a two-level namespace..."
     VERBATIM
     )
-  # if(NOT ("${twolevel}" MATCHES " TWOLEVEL "))
-  #   message(FATAL_ERROR
-  #     "Error in libmpiwrapper.so plugin:
-  #     The plugin libmpiwrapper.so was built without a two-level
-  #     namespace. This means that it will end up using the MPI
-  #     functions provided by MPItrampoline instead of those by the
-  #     actual MPI library. This will recurse infinitely, leading to a
-  #     stack overflow and segfault."
-  #     )
-  # endif()
 endif()
 
 install(
@@ -121,9 +149,9 @@ install(
   DESTINATION lib
   )
 
-configure_file(mpiwrapper-mpiexec.in mpiwrapper-mpiexec @ONLY)
+configure_file(mpiwrapper_mpiexec.in mpiwrapper_mpiexec @ONLY)
 install(
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/mpiwrapper-mpiexec"
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/mpiwrapper_mpiexec"
   DESTINATION bin
   PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
   )

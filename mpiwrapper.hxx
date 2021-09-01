@@ -1,7 +1,9 @@
 #ifndef MPIWRAPPER_HXX
 #define MPIWRAPPER_HXX
 
-#include "mpiwrapper-version.h"
+#include "mpiwrapper_version.h"
+
+#include "mpiabi.h"
 
 #include <mpi.h>
 
@@ -10,41 +12,27 @@
 #include <cstring>
 #include <type_traits>
 
-// We implement this file in C++ so that we can automatically convert between
-// the `MPI` and `MPIwrapper` types
-
-// Compile-time constants
-
-#define WPI_VERSION 3 // we pretend to support 3.1
-#define WPI_SUBVERSION 1
-
-// TODO: Check whether these limits are compatible with the wrapped MPI
-// #define WPI_MAX_DATAREP_STRING
-#define WPI_MAX_ERROR_STRING 1024           // MPICH's default
-#define WPI_MAX_INFO_KEY 256                // from MPICH
-#define WPI_MAX_INFO_VAL 1024               // from MPICH
-#define WPI_MAX_LIBRARY_VERSION_STRING 8192 // MPICH's default
-#define WPI_MAX_OBJECT_NAME 128             // from MPICH
-#define WPI_MAX_PORT_NAME 256               // from MPICH
-#define WPI_MAX_PROCESSOR_NAME 128          // MPICH's default
+// We implement this file in C++ so that we can automatically convert
+// between the `MPI` and `MPIABI` types. We also use it for thread
+// safety.
 
 ////////////////////////////////////////////////////////////////////////////////
 
 // Simple types
 
-typedef intptr_t WPI_Aint;
+typedef MPIABI_Aint WPI_Aint;
 static_assert(sizeof(MPI_Aint) == sizeof(WPI_Aint), "");
 static_assert(alignof(MPI_Aint) == alignof(WPI_Aint), "");
 
-typedef int64_t WPI_Count;
+typedef MPIABI_Count WPI_Count;
 static_assert(sizeof(MPI_Count) == sizeof(WPI_Count), "");
 static_assert(alignof(MPI_Count) == alignof(WPI_Count), "");
 
-typedef int WPI_Fint;
+typedef MPIABI_Fint WPI_Fint;
 static_assert(sizeof(MPI_Fint) == sizeof(WPI_Fint), "");
 static_assert(alignof(MPI_Fint) == alignof(WPI_Fint), "");
 
-typedef int64_t WPI_Offset;
+typedef MPIABI_Offset WPI_Offset;
 static_assert(sizeof(MPI_Offset) == sizeof(WPI_Offset), "");
 static_assert(alignof(MPI_Offset) == alignof(WPI_Offset), "");
 
@@ -52,191 +40,383 @@ static_assert(alignof(MPI_Offset) == alignof(WPI_Offset), "");
 
 // Handles
 
-template <typename MPI_T> struct alignas(alignof(uintptr_t)) WPI_Handle {
-  MPI_T handle;
-  uint8_t padding[sizeof(uintptr_t) - sizeof(MPI_T)];
+template <typename MPI_Handle> struct alignas(alignof(uintptr_t)) WPI_Handle {
+  MPI_Handle mpi_handle;
+  uint8_t padding[sizeof(uintptr_t) - sizeof(MPI_Handle)];
+  // We need to initialize the padding to ensure that handles can be compared
+  // for equality
   void pad() { memset(padding, 0, sizeof padding); }
 
   WPI_Handle() = default;
-  WPI_Handle(MPI_T handle_) : handle(handle_) { pad(); }
-  operator MPI_T() const { return handle; }
+
+  // Convert from and to MPI: Handle padding
+  WPI_Handle(MPI_Handle mpi_handle_) : mpi_handle(mpi_handle_) { pad(); }
+  operator MPI_Handle() const { return mpi_handle; }
+
+  // Convert from and to MPIABI: Use memcpy
+  WPI_Handle(uintptr_t wrapped) { memcpy(this, &wrapped, sizeof wrapped); }
+  operator uintptr_t() const {
+    uintptr_t wrapped;
+    memcpy(&wrapped, this, sizeof wrapped);
+    return wrapped;
+  }
 };
 
-template <typename MPI_T> struct WPI_HandlePtr {
-  WPI_Handle<MPI_T> *wrapped_handleptr;
+template <typename MPI_Handle> struct WPI_HandlePtr {
+  WPI_Handle<MPI_Handle> *wrapped_handle_ptr;
 
   WPI_HandlePtr() = default;
-  WPI_HandlePtr(MPI_T *handleptr)
-      : wrapped_handleptr((WPI_Handle<MPI_T> *)handleptr) {
-    wrapped_handleptr->pad();
+
+  // Pad the wrapped handle. This is necessary if the handle was not initialized
+  // by the application, the MPI library did set the handle, and the MPI wrapper
+  // is now returning to the application.
+  ~WPI_HandlePtr() { wrapped_handle_ptr->pad(); }
+
+  // Convert from and to MPI: Cast pointer and handle padding. We assume that
+  // the pointed-to handle is actually a wrapped handle, not just an MPI handle.
+  WPI_HandlePtr(MPI_Handle *mpi_handle_ptr)
+      : wrapped_handle_ptr((WPI_Handle<MPI_Handle> *)mpi_handle_ptr) {
+    wrapped_handle_ptr->pad();
   }
-  operator MPI_T *() const { return &wrapped_handleptr->handle; }
+  operator MPI_Handle *() const { return (MPI_Handle *)wrapped_handle_ptr; }
+
+  // Convert from and to MPIABI: Cast pointer
+  WPI_HandlePtr(uintptr_t *abi_handle_ptr)
+      : wrapped_handle_ptr((WPI_Handle<MPI_Handle> *)abi_handle_ptr) {}
+  operator uintptr_t *() const { return (uintptr_t *)wrapped_handle_ptr; }
 
   // These checks should logically be in `WPI_Handle`. However, C++ doesn't
-  // allow them there because the type `WPI_Handle` isn't complete yet, so we
+  // allow them there because the type `WPI_Handle` isn't complete there, so we
   // put them here.
-  static_assert(sizeof(MPI_T) <= sizeof(WPI_Handle<MPI_T>), "");
-  static_assert(alignof(MPI_T) <= alignof(WPI_Handle<MPI_T>), "");
-  static_assert(sizeof(WPI_Handle<MPI_T>) == sizeof(uintptr_t), "");
-  static_assert(alignof(WPI_Handle<MPI_T>) == alignof(uintptr_t), "");
-  static_assert(std::is_pod<WPI_Handle<MPI_T>>::value, "");
+  static_assert(sizeof(MPI_Handle) <= sizeof(WPI_Handle<MPI_Handle>), "");
+  static_assert(alignof(MPI_Handle) <= alignof(WPI_Handle<MPI_Handle>), "");
+  static_assert(sizeof(WPI_Handle<MPI_Handle>) == sizeof(uintptr_t), "");
+  static_assert(alignof(WPI_Handle<MPI_Handle>) == alignof(uintptr_t), "");
+  static_assert(std::is_pod<WPI_Handle<MPI_Handle>>::value, "");
+};
+
+template <typename MPI_Handle> struct WPI_const_HandlePtr {
+  const WPI_Handle<MPI_Handle> *wrapped_handle_ptr;
+
+  WPI_const_HandlePtr() = default;
+
+  // Convert from and to MPI: Cast pointer.
+  WPI_const_HandlePtr(const MPI_Handle *mpi_handle_ptr)
+      : wrapped_handle_ptr((const WPI_Handle<MPI_Handle> *)mpi_handle_ptr) {}
+  operator const MPI_Handle *() const {
+    return (const MPI_Handle *)wrapped_handle_ptr;
+  }
+
+  // Convert from and to MPIABI: Cast pointer
+  WPI_const_HandlePtr(const uintptr_t *abi_handle_ptr)
+      : wrapped_handle_ptr((const WPI_Handle<MPI_Handle> *)abi_handle_ptr) {}
+  operator const uintptr_t *() const {
+    return (const uintptr_t *)wrapped_handle_ptr;
+  }
 };
 
 typedef MPI_Comm *MPI_CommPtr;
 typedef WPI_Handle<MPI_Comm> WPI_Comm;
 typedef WPI_HandlePtr<MPI_Comm> WPI_CommPtr;
+typedef WPI_const_HandlePtr<MPI_Comm> WPI_const_CommPtr;
 
 typedef MPI_Datatype *MPI_DatatypePtr;
 typedef WPI_Handle<MPI_Datatype> WPI_Datatype;
 typedef WPI_HandlePtr<MPI_Datatype> WPI_DatatypePtr;
+typedef WPI_const_HandlePtr<MPI_Datatype> WPI_const_DatatypePtr;
 
 typedef MPI_Errhandler *MPI_ErrhandlerPtr;
 typedef WPI_Handle<MPI_Errhandler> WPI_Errhandler;
 typedef WPI_HandlePtr<MPI_Errhandler> WPI_ErrhandlerPtr;
+typedef WPI_const_HandlePtr<MPI_Errhandler> WPI_const_ErrhandlerPtr;
 
 typedef MPI_File *MPI_FilePtr;
 typedef WPI_Handle<MPI_File> WPI_File;
 typedef WPI_HandlePtr<MPI_File> WPI_FilePtr;
+typedef WPI_const_HandlePtr<MPI_File> WPI_const_FilePtr;
 
 typedef MPI_Group *MPI_GroupPtr;
 typedef WPI_Handle<MPI_Group> WPI_Group;
 typedef WPI_HandlePtr<MPI_Group> WPI_GroupPtr;
+typedef WPI_const_HandlePtr<MPI_Group> WPI_const_GroupPtr;
 
 typedef MPI_Info *MPI_InfoPtr;
 typedef WPI_Handle<MPI_Info> WPI_Info;
 typedef WPI_HandlePtr<MPI_Info> WPI_InfoPtr;
+typedef WPI_const_HandlePtr<MPI_Info> WPI_const_InfoPtr;
 
 typedef MPI_Message *MPI_MessagePtr;
 typedef WPI_Handle<MPI_Message> WPI_Message;
 typedef WPI_HandlePtr<MPI_Message> WPI_MessagePtr;
+typedef WPI_const_HandlePtr<MPI_Message> WPI_const_MessagePtr;
 
 typedef MPI_Op *MPI_OpPtr;
 typedef WPI_Handle<MPI_Op> WPI_Op;
 typedef WPI_HandlePtr<MPI_Op> WPI_OpPtr;
+typedef WPI_const_HandlePtr<MPI_Op> WPI_const_OpPtr;
 
 typedef MPI_Request *MPI_RequestPtr;
 typedef WPI_Handle<MPI_Request> WPI_Request;
 typedef WPI_HandlePtr<MPI_Request> WPI_RequestPtr;
+typedef WPI_const_HandlePtr<MPI_Request> WPI_const_RequestPtr;
 
 typedef MPI_Win *MPI_WinPtr;
 typedef WPI_Handle<MPI_Win> WPI_Win;
 typedef WPI_HandlePtr<MPI_Win> WPI_WinPtr;
+typedef WPI_const_HandlePtr<MPI_Win> WPI_const_WinPtr;
 
 ////////////////////////////////////////////////////////////////////////////////
 
 // MPI_Status
-// This is a difficult type to wrap since it has user-accessible fields.
 
-#ifdef __LP64__
-#define WPI_STATUS_SIZE 10
-#else
-#define WPI_STATUS_SIZE 8
-#endif
+#define WPI_STATUS_SIZE MPIABI_STATUS_SIZE
 
-// We put the MPI_Status struct in the beginning. This way, we can cast between
-// MPI_Status* and WPI_Status*.
-typedef struct WPI_Status {
-  mutable union {
-    MPI_Status status;
-    struct {
-      int f0;
-      int f1;
-      int f2;
-      int f3;
-      size_t f4;
-    } padding_OpenMPI; // also IBM Spectrum MPI
-    struct {
-      int f0;
-      int f1;
-      int f2;
-      int f3;
-      int f4;
-    } padding_MPICH; // also Intel MPI
-  } wrapped;
-  mutable int MPI_SOURCE;
-  mutable int MPI_TAG;
-  mutable int MPI_ERROR;
-
+// The memory layout of WPI_Status must be identical to MPIABI_Status
+struct WPI_Status : MPIABI_Status {
   WPI_Status() = default;
-  WPI_Status(const MPI_Status &status) {
-    assert((const MPI_Status *)this != MPI_STATUS_IGNORE &&
-           (const MPI_Status *)this != MPI_STATUSES_IGNORE);
-    wrapped.status = status;
-    MPI_SOURCE = wrapped.status.MPI_SOURCE;
-    MPI_TAG = wrapped.status.MPI_TAG;
-    MPI_ERROR = wrapped.status.MPI_ERROR;
+
+  // Convert from and to MPI: Handle fields
+  WPI_Status(const MPI_Status &mpi_status) {
+    assert(&mpi_status != MPI_STATUS_IGNORE &&
+           &mpi_status != MPI_STATUSES_IGNORE);
+    memcpy(this, &mpi_status, sizeof mpi_status);
+    // Set MPIABI fields from MPI status
+    MPI_SOURCE = mpi_status.MPI_SOURCE;
+    MPI_TAG = mpi_status.MPI_TAG;
+    MPI_ERROR = mpi_status.MPI_ERROR;
   }
   operator MPI_Status() const {
-    assert((const MPI_Status *)this != MPI_STATUS_IGNORE &&
-           (const MPI_Status *)this != MPI_STATUSES_IGNORE);
-    wrapped.status.MPI_SOURCE = MPI_SOURCE;
-    wrapped.status.MPI_TAG = MPI_TAG;
-    wrapped.status.MPI_ERROR = MPI_ERROR;
-    return wrapped.status;
+    // Set MPI status from MPIABI fields
+    MPI_Status mpi_status;
+    memcpy(&mpi_status, this, sizeof mpi_status);
+    mpi_status.MPI_SOURCE = MPI_SOURCE;
+    mpi_status.MPI_TAG = MPI_TAG;
+    mpi_status.MPI_ERROR = MPI_ERROR;
+    return mpi_status;
   }
-} WPI_Status;
+};
 
-static_assert(sizeof WPI_Status::wrapped >= sizeof(MPI_Status), "");
-static_assert(alignof WPI_Status::wrapped >= alignof(MPI_Status), "");
+static_assert(sizeof(WPI_Status) == sizeof(MPIABI_Status), "");
+static_assert(alignof(WPI_Status) == alignof(MPIABI_Status), "");
+static_assert(sizeof WPI_Status::mpi_status >= sizeof(MPI_Status), "");
+static_assert(alignof WPI_Status::mpi_status >= alignof(MPI_Status), "");
 static_assert(sizeof(WPI_Status) >= sizeof(MPI_Status), "");
 static_assert(alignof(WPI_Status) >= alignof(MPI_Status), "");
 static_assert(WPI_STATUS_SIZE * sizeof(WPI_Fint) == sizeof(WPI_Status), "");
 static_assert(std::is_pod<WPI_Status>::value, "");
 
-typedef WPI_Status *WPI_StatusPtr;
-typedef const WPI_Status *WPI_const_StatusPtr;
+struct WPI_StatusPtr {
+  WPI_Status *wrapped_status_ptr;
 
-struct MPI_StatusPtr {
-  WPI_Status *statusptr;
+  WPI_StatusPtr() = default;
 
-  MPI_StatusPtr(WPI_Status *statusptr_) : statusptr(statusptr_) {}
-  ~MPI_StatusPtr() {
-    if ((MPI_Status *)statusptr != MPI_STATUS_IGNORE &&
-        (MPI_Status *)statusptr != MPI_STATUSES_IGNORE) {
-      statusptr->MPI_SOURCE = statusptr->wrapped.status.MPI_SOURCE;
-      statusptr->MPI_TAG = statusptr->wrapped.status.MPI_TAG;
-      statusptr->MPI_ERROR = statusptr->wrapped.status.MPI_ERROR;
+  // Set the wrapped fields. This is necessary if the status was not initialized
+  // by the application, the MPI library did set the status, and the MPI wrapper
+  // is now returning to the application.
+  ~WPI_StatusPtr() {
+    MPI_Status *mpi_status_ptr = (MPI_Status *)wrapped_status_ptr;
+    if (mpi_status_ptr != MPI_STATUS_IGNORE &&
+        mpi_status_ptr != MPI_STATUSES_IGNORE) {
+      wrapped_status_ptr->MPI_SOURCE = mpi_status_ptr->MPI_SOURCE;
+      wrapped_status_ptr->MPI_TAG = mpi_status_ptr->MPI_TAG;
+      wrapped_status_ptr->MPI_ERROR = mpi_status_ptr->MPI_ERROR;
     }
   }
-  operator MPI_Status *() const {
-    if ((MPI_Status *)statusptr == MPI_STATUS_IGNORE ||
-        (MPI_Status *)statusptr == MPI_STATUSES_IGNORE)
-      return MPI_STATUS_IGNORE;
-    statusptr->wrapped.status.MPI_SOURCE = statusptr->MPI_SOURCE;
-    statusptr->wrapped.status.MPI_TAG = statusptr->MPI_TAG;
-    statusptr->wrapped.status.MPI_ERROR = statusptr->MPI_ERROR;
-    return &statusptr->wrapped.status;
+
+  // Convert from and to MPI: Cast pointer and handle fields. We assume the
+  // pointed-to status is a wrapped status, not just an MPI status.
+  WPI_StatusPtr(MPI_Status *mpi_status_ptr)
+      : wrapped_status_ptr((WPI_Status *)mpi_status_ptr) {
+    if (mpi_status_ptr != MPI_STATUS_IGNORE &&
+        mpi_status_ptr != MPI_STATUSES_IGNORE) {
+      wrapped_status_ptr->MPI_SOURCE = mpi_status_ptr->MPI_SOURCE;
+      wrapped_status_ptr->MPI_TAG = mpi_status_ptr->MPI_TAG;
+      wrapped_status_ptr->MPI_ERROR = mpi_status_ptr->MPI_ERROR;
+    }
+  }
+  operator MPI_Status *() const { return (MPI_Status *)wrapped_status_ptr; }
+
+  // Convert from and to MPIABI: Cast pointer
+  WPI_StatusPtr(MPIABI_Status *abi_status_ptr)
+      : wrapped_status_ptr((WPI_Status *)abi_status_ptr) {}
+  operator MPIABI_Status *() const {
+    return (MPIABI_Status *)wrapped_status_ptr;
   }
 };
 
-struct MPI_const_StatusPtr {
-  const WPI_Status *statusptr;
+struct WPI_const_StatusPtr {
+  const WPI_Status *wrapped_status_ptr;
 
-  MPI_const_StatusPtr(const WPI_Status *statusptr_) : statusptr(statusptr_) {}
-  ~MPI_const_StatusPtr() {
-    if ((const MPI_Status *)statusptr != MPI_STATUS_IGNORE &&
-        (const MPI_Status *)statusptr != MPI_STATUSES_IGNORE) {
-      statusptr->MPI_SOURCE = statusptr->wrapped.status.MPI_SOURCE;
-      statusptr->MPI_TAG = statusptr->wrapped.status.MPI_TAG;
-      statusptr->MPI_ERROR = statusptr->wrapped.status.MPI_ERROR;
+  WPI_const_StatusPtr() = default;
+
+  // Set the wrapped fields. This is necessary if the status was not initialized
+  // by the application, the MPI library did set the status, and the MPI wrapper
+  // is now returning to the application.
+  ~WPI_const_StatusPtr() {
+    const MPI_Status *mpi_status_ptr = (const MPI_Status *)wrapped_status_ptr;
+    if (mpi_status_ptr != MPI_STATUS_IGNORE &&
+        mpi_status_ptr != MPI_STATUSES_IGNORE) {
+      const_cast<WPI_Status *>(wrapped_status_ptr)->MPI_SOURCE =
+          mpi_status_ptr->MPI_SOURCE;
+      const_cast<WPI_Status *>(wrapped_status_ptr)->MPI_TAG =
+          mpi_status_ptr->MPI_TAG;
+      const_cast<WPI_Status *>(wrapped_status_ptr)->MPI_ERROR =
+          mpi_status_ptr->MPI_ERROR;
+    }
+  }
+
+  // Convert from and to MPI: Cast pointer and handle fields. We assume the
+  // pointed-to status is a wrapped status, not just an MPI status.
+  WPI_const_StatusPtr(const MPI_Status *mpi_status_ptr)
+      : wrapped_status_ptr((const WPI_Status *)mpi_status_ptr) {
+    if (mpi_status_ptr != MPI_STATUS_IGNORE &&
+        mpi_status_ptr != MPI_STATUSES_IGNORE) {
+      const_cast<WPI_Status *>(wrapped_status_ptr)->MPI_SOURCE =
+          mpi_status_ptr->MPI_SOURCE;
+      const_cast<WPI_Status *>(wrapped_status_ptr)->MPI_TAG =
+          mpi_status_ptr->MPI_TAG;
+      const_cast<WPI_Status *>(wrapped_status_ptr)->MPI_ERROR =
+          mpi_status_ptr->MPI_ERROR;
     }
   }
   operator const MPI_Status *() const {
-    if ((const MPI_Status *)statusptr == MPI_STATUS_IGNORE ||
-        (const MPI_Status *)statusptr == MPI_STATUSES_IGNORE)
-      return MPI_STATUS_IGNORE;
-    statusptr->wrapped.status.MPI_SOURCE = statusptr->MPI_SOURCE;
-    statusptr->wrapped.status.MPI_TAG = statusptr->MPI_TAG;
-    statusptr->wrapped.status.MPI_ERROR = statusptr->MPI_ERROR;
-    return &statusptr->wrapped.status;
+    return (const MPI_Status *)wrapped_status_ptr;
+  }
+
+  // Convert from and to MPIABI: Cast pointer
+  WPI_const_StatusPtr(const MPIABI_Status *abi_status_ptr)
+      : wrapped_status_ptr((const WPI_Status *)abi_status_ptr) {}
+  operator const MPIABI_Status *() const {
+    return (const MPIABI_Status *)wrapped_status_ptr;
   }
 };
+
+// // The memory layout of WPI_Status must be identical to MPIABI_Status
+// struct WPI_Status {
+//   mutable union {
+//     MPI_Status status;
+//     struct {
+//       int f0;
+//       int f1;
+//       int f2;
+//       int f3;
+//       size_t f4;
+//     } padding_OpenMPI; // also IBM Spectrum MPI
+//     struct {
+//       int f0;
+//       int f1;
+//       int f2;
+//       int f3;
+//       int f4;
+//     } padding_MPICH; // also Intel MPI
+//   } wrapped;
+//   mutable int MPI_SOURCE;
+//   mutable int MPI_TAG;
+//   mutable int MPI_ERROR;
+//
+//   WPI_Status() = default;
+//   WPI_Status(const MPI_Status &status) {
+//     assert((const MPI_Status *)this != MPI_STATUS_IGNORE &&
+//            (const MPI_Status *)this != MPI_STATUSES_IGNORE);
+//     wrapped.status = status;
+//     MPI_SOURCE = wrapped.status.MPI_SOURCE;
+//     MPI_TAG = wrapped.status.MPI_TAG;
+//     MPI_ERROR = wrapped.status.MPI_ERROR;
+//   }
+//   operator MPI_Status() const {
+//     assert((const MPI_Status *)this != MPI_STATUS_IGNORE &&
+//            (const MPI_Status *)this != MPI_STATUSES_IGNORE);
+//     wrapped.status.MPI_SOURCE = MPI_SOURCE;
+//     wrapped.status.MPI_TAG = MPI_TAG;
+//     wrapped.status.MPI_ERROR = MPI_ERROR;
+//     return wrapped.status;
+//   }
+// };
+//
+// static_assert(sizeof(WPI_Status) == sizeof(MPIABI_Status), "");
+// static_assert(alignof(WPI_Status) == alignof(MPIABI_Status), "");
+// static_assert(sizeof WPI_Status::wrapped >= sizeof(MPI_Status), "");
+// static_assert(alignof WPI_Status::wrapped >= alignof(MPI_Status), "");
+// static_assert(sizeof(WPI_Status) >= sizeof(MPI_Status), "");
+// static_assert(alignof(WPI_Status) >= alignof(MPI_Status), "");
+// static_assert(WPI_STATUS_SIZE * sizeof(WPI_Fint) == sizeof(WPI_Status), "");
+// static_assert(std::is_pod<WPI_Status>::value, "");
+//
+// typedef WPI_Status *WPI_StatusPtr;
+// typedef const WPI_Status *WPI_const_StatusPtr;
+//
+// struct MPI_StatusPtr {
+//   WPI_Status *statusptr;
+//
+//   MPI_StatusPtr(WPI_Status *statusptr_) : statusptr(statusptr_) {}
+//   ~MPI_StatusPtr() {
+//     if ((MPI_Status *)statusptr != MPI_STATUS_IGNORE &&
+//         (MPI_Status *)statusptr != MPI_STATUSES_IGNORE) {
+//       statusptr->MPI_SOURCE = statusptr->wrapped.status.MPI_SOURCE;
+//       statusptr->MPI_TAG = statusptr->wrapped.status.MPI_TAG;
+//       statusptr->MPI_ERROR = statusptr->wrapped.status.MPI_ERROR;
+//     }
+//   }
+//   operator MPI_Status *() const {
+//     if ((MPI_Status *)statusptr == MPI_STATUS_IGNORE ||
+//         (MPI_Status *)statusptr == MPI_STATUSES_IGNORE)
+//       return MPI_STATUS_IGNORE;
+//     statusptr->wrapped.status.MPI_SOURCE = statusptr->MPI_SOURCE;
+//     statusptr->wrapped.status.MPI_TAG = statusptr->MPI_TAG;
+//     statusptr->wrapped.status.MPI_ERROR = statusptr->MPI_ERROR;
+//     return &statusptr->wrapped.status;
+//   }
+// };
+//
+// struct MPI_const_StatusPtr {
+//   const WPI_Status *statusptr;
+//
+//   MPI_const_StatusPtr(const WPI_Status *statusptr_) : statusptr(statusptr_)
+//   {} ~MPI_const_StatusPtr() {
+//     if ((const MPI_Status *)statusptr != MPI_STATUS_IGNORE &&
+//         (const MPI_Status *)statusptr != MPI_STATUSES_IGNORE) {
+//       statusptr->MPI_SOURCE = statusptr->wrapped.status.MPI_SOURCE;
+//       statusptr->MPI_TAG = statusptr->wrapped.status.MPI_TAG;
+//       statusptr->MPI_ERROR = statusptr->wrapped.status.MPI_ERROR;
+//     }
+//   }
+//   operator const MPI_Status *() const {
+//     if ((const MPI_Status *)statusptr == MPI_STATUS_IGNORE ||
+//         (const MPI_Status *)statusptr == MPI_STATUSES_IGNORE)
+//       return MPI_STATUS_IGNORE;
+//     statusptr->wrapped.status.MPI_SOURCE = statusptr->MPI_SOURCE;
+//     statusptr->wrapped.status.MPI_TAG = statusptr->MPI_TAG;
+//     statusptr->wrapped.status.MPI_ERROR = statusptr->MPI_ERROR;
+//     return &statusptr->wrapped.status;
+//   }
+// };
 
 ////////////////////////////////////////////////////////////////////////////////
 
 // Call-back function types
 
 // TODO: Handle conversions
+
+// typedef void WPI_Comm_copy_attr_function();
+// typedef void WPI_Comm_delete_attr_function();
+// typedef void WPI_Comm_errhandler_function();
+// typedef WPI_Comm_errhandler_function WPI_Comm_errhandler_fn;
+// typedef WPI_Comm_copy_attr_function WPI_Copy_function;
+// typedef void WPI_Datarep_conversion_function();
+// typedef void WPI_Datarep_extent_function();
+// typedef void WPI_Delete_function();
+// typedef void WPI_File_errhandler_function();
+// typedef void WPI_File_errhandler_fn();
+// typedef void WPI_Grequest_cancel_function();
+// typedef void WPI_Grequest_free_function();
+// typedef void WPI_Grequest_query_function();
+// typedef void WPI_Type_copy_attr_function();
+// typedef void WPI_Type_delete_attr_function();
+// typedef void WPI_User_function();
+// typedef void WPI_Win_copy_attr_function();
+// typedef void WPI_Win_delete_attr_function();
+// typedef void WPI_Win_errhandler_function();
+// typedef WPI_Win_errhandler_function WPI_Win_errhandler_fn;
 
 typedef int WPI_Comm_copy_attr_function(WPI_Comm oldcomm, int comm_keyval,
                                         void *extra_state,
