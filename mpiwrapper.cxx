@@ -421,9 +421,11 @@ extern "C" int MPIABI_Get_library_version(char *version, int *resultlen) {
   MPI_Get_library_version(wrapped_version, &wrapped_resultlen);
 
   // TODO: Add MPItrampoline version number as well
-  *resultlen = snprintf(version, MPIABI_MAX_LIBRARY_VERSION_STRING,
-                        "MPIwrapper %s, wrapping %s", MPIWRAPPER_VERSION,
-                        wrapped_version);
+  *resultlen =
+      snprintf(version, MPIABI_MAX_LIBRARY_VERSION_STRING,
+               "MPIwrapper %s, using MPIABI %d.%d.%d, wrapping:\n%s",
+               MPIWRAPPER_VERSION, MPIABI_VERSION_MAJOR, MPIABI_VERSION_MINOR,
+               MPIABI_VERSION_PATCH, wrapped_version);
   return MPI_SUCCESS;
 }
 
