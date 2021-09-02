@@ -46,7 +46,10 @@ for (tp, nm, args, flags) in functions:
     tmpl.append(") {");
     tmpl.append("  fprintf(stderr, \"$mpi_nm.0\\n\");")
     tmpl.append("#ifndef $mpi_nm")
-    tmpl.append("  fprintf(stderr, \"$mpi_nm.0 fptr=%p\\n\", (const void*)$mpi_nm);")
+    tmpl.append("  fprintf(stderr, \"$mpi_nm.1 fptr=%p\\n\", (const void*)$mpi_nm);")
+    tmpl.append("#endif")
+    tmpl.append("#ifndef P$mpi_nm")
+    tmpl.append("  fprintf(stderr, \"$mpi_nm.1 fptr=%p\\n\", (const void*)P$mpi_nm);")
     tmpl.append("#endif")
     rcast = "($abi_tp)($wpi_tp)" if re.search(r"MPI_", tp) else ""
     # tmpl.append("  return "+rcast+"$mpi_nm(");
