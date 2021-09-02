@@ -45,6 +45,9 @@ for (tp, nm, args, flags) in functions:
     tmpl[-1] = re.sub(r",?$", "", tmpl[-1])  # remove trailing comma of last argument
     tmpl.append(") {");
     tmpl.append("  fprintf(stderr, \"$mpi_nm.0\\n\");")
+    tmpl.append("#ifndef $mpi_nm")
+    tmpl.append("  fprintf(stderr, \"$mpi_nm.0 fptr=%p\\n\", (const void*)$mpi_nm);")
+    tmpl.append("#endif")
     rcast = "($abi_tp)($wpi_tp)" if re.search(r"MPI_", tp) else ""
     # tmpl.append("  return "+rcast+"$mpi_nm(");
     tmpl.append("  $abi_tp res = "+rcast+"$mpi_nm(");
