@@ -141,9 +141,9 @@ install(
   DESTINATION lib
   )
 
-configure_file(mpiwrapper_mpiexec.in mpiwrapper_mpiexec @ONLY)
+configure_file(mpiwrapperexec.in mpiwrapperexec @ONLY)
 install(
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/mpiwrapper_mpiexec"
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/mpiwrapperexec"
   DESTINATION bin
   PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
   )
