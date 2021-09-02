@@ -16,6 +16,9 @@
 
 // Compile-time constants
 
+#define MPIABI_MPI_VERSION 3
+#define MPIABI_MPI_SUBVERSION 1
+
 #define MPIABI_MAX_DATAREP_STRING 128          // from MPICH
 #define MPIABI_MAX_ERROR_STRING 1024           // MPICH's default
 #define MPIABI_MAX_INFO_KEY 256                // from MPICH
@@ -141,8 +144,6 @@ extern "C" {
 extern const int mpiabi_version_major;
 extern const int mpiabi_version_minor;
 extern const int mpiabi_version_patch;
-
-#include "mpiabi_declarations.h"
 
 #ifdef __cplusplus
 }

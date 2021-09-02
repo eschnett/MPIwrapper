@@ -84,7 +84,7 @@ configure_file(mpiwrapper_version.h.in mpiwrapper_version.h @ONLY)
 
 add_custom_command(
   OUTPUT mpiabi_declarations.h
-  COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/generate_mpiabi_declarations.py >mpiabi_declarations.h
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/generate_mpiabi_declarations.py >mpiabi_declarations.h
   DEPENDS
   ${CMAKE_CURRENT_SOURCE_DIR}/generate_mpiabi_declarations.py
   ${CMAKE_CURRENT_SOURCE_DIR}/mpi_constants.py
@@ -95,7 +95,7 @@ add_custom_command(
 
 add_custom_command(
   OUTPUT mpiwrapper_definitions.h
-  COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/generate_mpiwrapper_definitions.py >mpiwrapper_definitions.h
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/generate_mpiwrapper_definitions.py >mpiwrapper_definitions.h
   DEPENDS
   ${CMAKE_CURRENT_SOURCE_DIR}/generate_mpiwrapper_definitions.py
   ${CMAKE_CURRENT_SOURCE_DIR}/mpi_constants.py
@@ -105,26 +105,18 @@ add_custom_command(
 
 add_custom_command(
   OUTPUT mpiwrapper_definitions_fortran.h
-  COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/generate_mpiwrapper_definitions_fortran.py >mpiwrapper_definitions_fortran.h
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/generate_mpiwrapper_definitions_fortran.py >mpiwrapper_definitions_fortran.h
   DEPENDS
   ${CMAKE_CURRENT_SOURCE_DIR}/generate_mpiwrapper_definitions_fortran.py
   ${CMAKE_CURRENT_SOURCE_DIR}/mpi_constants_fortran.py
   )
-
-# add_custom_command(
-#   OUTPUT mpiwrapper.f
-#   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/fortran_cpp.sh ${CMAKE_CURRENT_SOURCE_DIR}/mpiwrapper.f.in mpiwrapper.f
-#   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mpiwrapper.f.in ${CMAKE_CURRENT_SOURCE_DIR}/mpi-constants-f.inc
-#   VERBATIM
-#   )
 
 add_library(mpiwrapper MODULE
   mpiabi.h mpiabi_declarations.h
   mpiwrapper_version.h
   mpiwrapper.cxx mpiwrapper.hxx mpiwrapper_definitions.h
   mpiwrapper.f mpiwrapper_definitions_fortran.h)
-# set_target_properties(mpiwrapper
-#   PROPERTIES
+# set_target_properties(mpiwrapper PROPERTIES
 #   SOVERSION 2.0.0
 # )
 target_include_directories(mpiwrapper PRIVATE ${CMAKE_CURRENT_BINARY_DIR})

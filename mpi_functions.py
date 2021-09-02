@@ -422,12 +422,12 @@ functions = [
         ("MPI_Aint *", "address"),
     ], None),
 
-    ("MPI_Aint", "Aint_add", [
+    ("MPI_Aint", "MPI_Aint_add", [
         ("MPI_Aint", "base"),
         ("MPI_Aint", "disp"),
     ], None),
 
-    ("MPI_Aint", "Aint_diff", [
+    ("MPI_Aint", "MPI_Aint_diff", [
         ("MPI_Aint", "addr1"),
         ("MPI_Aint", "addr2"),
     ], None),
@@ -717,6 +717,10 @@ functions = [
         ("MPI_Op *", "op"),
     ], "manual"),
 
+    ("int", "MPI_Op_free", [
+        ("MPI_Op *", "op"),
+    ], "manual"),
+
     ("int", "MPI_Allreduce", [
         ("const void *", "sendbuf"),
         ("void *", "recvbuf"),
@@ -724,6 +728,11 @@ functions = [
         ("MPI_Datatype", "datatype"),
         ("MPI_Op", "op"),
         ("MPI_Comm", "comm"),
+    ], None),
+
+    ("int", "MPI_Op_commutative", [
+        ("MPI_Op", "op"),
+        ("int *", "commute"),
     ], None),
 
     ("int", "MPI_Reduce_local", [
@@ -1676,9 +1685,9 @@ functions = [
 
     # 8.6 Times and Synchronization
 
-    ("double", "Wtime", [], None),
+    ("double", "MPI_Wtime", [], None),
 
-    ("double", "Wtick", [], None),
+    ("double", "MPI_Wtick", [], None),
 
     # 8.7 Startup
 
@@ -2708,9 +2717,9 @@ functions = [
     #     ("MPI_Fint *", "f_status"),
     # ], None),
 
-    ("int", "MPI_Pcontrol", [
-        ("const int", "level"),
-        ("...", ""),
-    ], "manual"),
+    # ("int", "MPI_Pcontrol", [
+    #     ("int", "level"),
+    #     ("...", ""),
+    # ], "manual"),
 
 ]

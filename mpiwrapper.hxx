@@ -175,6 +175,8 @@ typedef WPI_const_HandlePtr<MPI_Win> WPI_const_WinPtr;
 struct WPI_Status : MPIABI_Status {
   WPI_Status() = default;
 
+  WPI_Status(const MPIABI_Status &abi_status) : MPIABI_Status(abi_status) {}
+
   // Convert from and to MPI: Handle fields
   WPI_Status(const MPI_Status &mpi_status) {
     assert(&mpi_status != MPI_STATUS_IGNORE &&
@@ -459,5 +461,17 @@ typedef int WPI_Win_delete_attr_function(WPI_Win win, int win_keyval,
                                          void *extra_state);
 typedef void WPI_Win_errhandler_function(WPI_Win *, int *, ...);
 typedef WPI_Win_errhandler_function WPI_Win_errhandler_fn;
+
+// Declarations
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "mpiabi_declarations.h"
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // #ifndef MPIWRAPPER_HXX
