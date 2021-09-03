@@ -109,7 +109,7 @@ static_assert(std::is_pod<MPIABI_Status>::value, "");
 #endif
 
 // Helper types
-// TODO: Don't define these publicly
+// TODO: Don't define this publicly
 typedef int MPIABI_array_int_3[3];
 
 // Callback function types

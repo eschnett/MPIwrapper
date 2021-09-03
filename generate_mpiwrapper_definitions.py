@@ -44,23 +44,13 @@ for (tp, nm, args, flags) in functions:
         tmpl.append("  $abi_atp{0} $anm{0},".format(i))
     tmpl[-1] = re.sub(r",?$", "", tmpl[-1])  # remove trailing comma of last argument
     tmpl.append(") {");
-    tmpl.append("  fprintf(stderr, \"$mpi_nm.0\\n\");")
-    tmpl.append("#ifndef $mpi_nm")
-    tmpl.append("  fprintf(stderr, \"$mpi_nm.1 fptr=%p\\n\", (const void*)$mpi_nm);")
-    tmpl.append("#endif")
-    tmpl.append("#ifndef P$mpi_nm")
-    tmpl.append("  fprintf(stderr, \"$mpi_nm.1 fptr=%p\\n\", (const void*)P$mpi_nm);")
-    tmpl.append("#endif")
     rcast = "($abi_tp)($wpi_tp)" if re.search(r"MPI_", tp) else ""
-    # tmpl.append("  return "+rcast+"$mpi_nm(");
-    tmpl.append("  $abi_tp res = "+rcast+"$mpi_nm(");
+    tmpl.append("  return "+rcast+"$mpi_nm(");
     for (i, (atp, anm)) in enumerate(args):
         acast = "($mpi_atp{0})($wpi_atp{0})".format(i) if re.search(r"MPI_", atp) else ""
         tmpl.append("    "+acast+"$anm{0},".format(i))
     tmpl[-1] = re.sub(r",?$", "", tmpl[-1])  # remove trailing comma of last argument
     tmpl.append("  );");
-    tmpl.append("  fprintf(stderr, \"$mpi_nm.9\\n\");")
-    tmpl.append("  return res;")
     tmpl.append("}");
     print(Template("\n".join(tmpl)).substitute(subs))
 
