@@ -18,6 +18,22 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// Compile-time constants
+
+static_assert(MPI_VERSION == MPIABI_MPI_VERSION, "");
+static_assert(MPI_SUBVERSION >= MPIABI_MPI_SUBVERSION, "");
+
+static_assert(MPI_MAX_DATAREP_STRING <= MPIABI_MAX_DATAREP_STRING, "");
+static_assert(MPI_MAX_ERROR_STRING <= MPIABI_MAX_ERROR_STRING, "");
+static_assert(MPI_MAX_INFO_KEY <= MPIABI_MAX_INFO_KEY, "");
+static_assert(MPI_MAX_INFO_VAL <= MPIABI_MAX_INFO_VAL, "");
+static_assert(MPI_MAX_LIBRARY_VERSION_STRING <=
+                  MPIABI_MAX_LIBRARY_VERSION_STRING,
+              "");
+static_assert(MPI_MAX_OBJECT_NAME <= MPIABI_MAX_OBJECT_NAME, "");
+static_assert(MPI_MAX_PORT_NAME <= MPIABI_MAX_PORT_NAME, "");
+static_assert(MPI_MAX_PROCESSOR_NAME <= MPIABI_MAX_PROCESSOR_NAME, "");
+
 // Simple types
 
 typedef MPIABI_Aint WPI_Aint;
