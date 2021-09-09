@@ -40,6 +40,10 @@ typedef MPIABI_Aint WPI_Aint;
 static_assert(sizeof(MPI_Aint) == sizeof(WPI_Aint), "");
 static_assert(alignof(MPI_Aint) == alignof(WPI_Aint), "");
 
+// TODO:
+// - MPICH uses 8 bytes for `MPI_Count` and `MPI_Offset`
+// - OpenMPI uses at most `ssize_t` for `MPI_Count` and `MPI_Offset`,
+//   which has only 32 bits on 32-bit architectures.
 typedef MPIABI_Count WPI_Count;
 static_assert(sizeof(MPI_Count) == sizeof(WPI_Count), "");
 static_assert(alignof(MPI_Count) == alignof(WPI_Count), "");
