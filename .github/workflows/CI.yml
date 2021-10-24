@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main!]
+    branches: [main]
 
 env:
   BUILD_TYPE: Debug
@@ -32,7 +32,7 @@ jobs:
             sudo apt-get install $packages
             ;;
         macOS)
-            # The MacPorts MPICH doesn't have the `mpi-f08` Fortran
+            # The Homebrew MPICH doesn't have the `mpi-f08` Fortran
             # module, but cmake insists on it. We thus use MacPorts
             # instead.
 
