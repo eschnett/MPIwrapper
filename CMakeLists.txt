@@ -64,7 +64,7 @@ module unload mpi
 cmake_minimum_required(VERSION 3.12...3.20)
 project(
   MPIwrapper
-  VERSION 2.0.0
+  VERSION 2.1.0
   DESCRIPTION "MPI wrapper"
   LANGUAGES CXX Fortran
   )
