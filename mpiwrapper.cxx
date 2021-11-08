@@ -145,85 +145,110 @@ extern "C" int MPIABI_Testany(int count, MPIABI_Request array_of_requests[],
 
 extern "C" int MPIABI_Waitall(int count, MPIABI_Request array_of_requests[],
                               MPIABI_Status array_of_statuses[]) {
-  if (sizeof(MPI_Request) == sizeof(MPIABI_Request) &&
-      (MPI_Status *)array_of_statuses == MPI_STATUSES_IGNORE)
+  const bool ignore_statuses =
+      (MPI_Status *)array_of_statuses == MPI_STATUSES_IGNORE;
+  if (sizeof(MPI_Request) == sizeof(MPIABI_Request) && ignore_statuses)
     return MPI_Waitall(count, (MPI_Request *)array_of_requests,
                        MPI_STATUSES_IGNORE);
   std::vector<MPI_Request> reqs(count);
   for (int i = 0; i < count; ++i)
     reqs[i] = (WPI_Request)array_of_requests[i];
-  std::vector<MPI_Status> stats(count);
-  for (int i = 0; i < count; ++i)
-    stats[i] = (WPI_Status)array_of_statuses[i];
-  const int ierr = MPI_Waitall(count, reqs.data(), stats.data());
+  std::vector<MPI_Status> stats;
+  if (!ignore_statuses) {
+    stats.resize(count);
+    for (int i = 0; i < count; ++i)
+      stats[i] = (WPI_Status)array_of_statuses[i];
+  }
+  const int ierr = MPI_Waitall(
+      count, reqs.data(), ignore_statuses ? MPI_STATUSES_IGNORE : stats.data());
   for (int i = 0; i < count; ++i)
     array_of_requests[i] = (WPI_Request)reqs[i];
-  for (int i = 0; i < count; ++i)
-    array_of_statuses[i] = (WPI_Status)stats[i];
+  if (!ignore_statuses)
+    for (int i = 0; i < count; ++i)
+      array_of_statuses[i] = (WPI_Status)stats[i];
   return ierr;
 }
 
 extern "C" int MPIABI_Testall(int count, MPIABI_Request array_of_requests[],
                               int *flag, MPIABI_Status array_of_statuses[]) {
-  if (sizeof(MPI_Request) == sizeof(MPIABI_Request) &&
-      (MPI_Status *)array_of_statuses == MPI_STATUSES_IGNORE)
+  const bool ignore_statuses =
+      (MPI_Status *)array_of_statuses == MPI_STATUSES_IGNORE;
+  if (sizeof(MPI_Request) == sizeof(MPIABI_Request) && ignore_statuses)
     return MPI_Testall(count, (MPI_Request *)array_of_requests, flag,
                        MPI_STATUSES_IGNORE);
   std::vector<MPI_Request> reqs(count);
   for (int i = 0; i < count; ++i)
     reqs[i] = (WPI_Request)array_of_requests[i];
-  std::vector<MPI_Status> stats(count);
-  for (int i = 0; i < count; ++i)
-    stats[i] = (WPI_Status)array_of_statuses[i];
-  const int ierr = MPI_Testall(count, reqs.data(), flag, stats.data());
+  std::vector<MPI_Status> stats;
+  if (!ignore_statuses) {
+    stats.resize(count);
+    for (int i = 0; i < count; ++i)
+      stats[i] = (WPI_Status)array_of_statuses[i];
+  }
+  const int ierr =
+      MPI_Testall(count, reqs.data(), flag,
+                  ignore_statuses ? MPI_STATUSES_IGNORE : stats.data());
   for (int i = 0; i < count; ++i)
     array_of_requests[i] = (WPI_Request)reqs[i];
-  for (int i = 0; i < count; ++i)
-    array_of_statuses[i] = (WPI_Status)stats[i];
+  if (!ignore_statuses)
+    for (int i = 0; i < count; ++i)
+      array_of_statuses[i] = (WPI_Status)stats[i];
   return ierr;
 }
 
 extern "C" int MPIABI_Waitsome(int incount, MPIABI_Request array_of_requests[],
                                int *outcount, int array_of_indices[],
                                MPIABI_Status array_of_statuses[]) {
-  if (sizeof(MPI_Request) == sizeof(MPIABI_Request) &&
-      (MPI_Status *)array_of_statuses == MPI_STATUSES_IGNORE)
+  const bool ignore_statuses =
+      (MPI_Status *)array_of_statuses == MPI_STATUSES_IGNORE;
+  if (sizeof(MPI_Request) == sizeof(MPIABI_Request) && ignore_statuses)
     return MPI_Waitsome(incount, (MPI_Request *)array_of_requests, outcount,
                         array_of_indices, MPI_STATUSES_IGNORE);
   std::vector<MPI_Request> reqs(incount);
   for (int i = 0; i < incount; ++i)
     reqs[i] = (WPI_Request)array_of_requests[i];
-  std::vector<MPI_Status> stats(incount);
-  for (int i = 0; i < incount; ++i)
-    stats[i] = (WPI_Status)array_of_statuses[i];
-  const int ierr = MPI_Waitsome(incount, reqs.data(), outcount,
-                                array_of_indices, stats.data());
+  std::vector<MPI_Status> stats;
+  if (!ignore_statuses) {
+    stats.resize(incount);
+    for (int i = 0; i < incount; ++i)
+      stats[i] = (WPI_Status)array_of_statuses[i];
+  }
+  const int ierr =
+      MPI_Waitsome(incount, reqs.data(), outcount, array_of_indices,
+                   ignore_statuses ? MPI_STATUSES_IGNORE : stats.data());
   for (int i = 0; i < incount; ++i)
     array_of_requests[i] = (WPI_Request)reqs[i];
-  for (int i = 0; i < incount; ++i)
-    array_of_statuses[i] = (WPI_Status)stats[i];
+  if (!ignore_statuses)
+    for (int i = 0; i < incount; ++i)
+      array_of_statuses[i] = (WPI_Status)stats[i];
   return ierr;
 }
 
 extern "C" int MPIABI_Testsome(int incount, MPIABI_Request array_of_requests[],
                                int *outcount, int array_of_indices[],
                                MPIABI_Status array_of_statuses[]) {
-  if (sizeof(MPI_Request) == sizeof(MPIABI_Request) &&
-      (MPI_Status *)array_of_statuses == MPI_STATUSES_IGNORE)
+  const bool ignore_statuses =
+      (MPI_Status *)array_of_statuses == MPI_STATUSES_IGNORE;
+  if (sizeof(MPI_Request) == sizeof(MPIABI_Request) && ignore_statuses)
     return MPI_Waitsome(incount, (MPI_Request *)array_of_requests, outcount,
                         array_of_indices, MPI_STATUSES_IGNORE);
   std::vector<MPI_Request> reqs(incount);
   for (int i = 0; i < incount; ++i)
     reqs[i] = (WPI_Request)array_of_requests[i];
-  std::vector<MPI_Status> stats(incount);
-  for (int i = 0; i < incount; ++i)
-    stats[i] = (WPI_Status)array_of_statuses[i];
-  const int ierr = MPI_Testsome(incount, reqs.data(), outcount,
-                                array_of_indices, stats.data());
+  std::vector<MPI_Status> stats;
+  if (!ignore_statuses) {
+    stats.resize(incount);
+    for (int i = 0; i < incount; ++i)
+      stats[i] = (WPI_Status)array_of_statuses[i];
+  }
+  const int ierr =
+      MPI_Testsome(incount, reqs.data(), outcount, array_of_indices,
+                   ignore_statuses ? MPI_STATUSES_IGNORE : stats.data());
   for (int i = 0; i < incount; ++i)
     array_of_requests[i] = (WPI_Request)reqs[i];
-  for (int i = 0; i < incount; ++i)
-    array_of_statuses[i] = (WPI_Status)stats[i];
+  if (!ignore_statuses)
+    for (int i = 0; i < incount; ++i)
+      array_of_statuses[i] = (WPI_Status)stats[i];
   return ierr;
 }
 
