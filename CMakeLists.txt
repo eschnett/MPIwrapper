@@ -1,6 +1,32 @@
 #[[
+# rm -rf build-openmpi $HOME/src/c/MPIstuff/mpiwrapper-openmpi
+# cmake -S . -B build-openmpi -G Ninja -DMPIEXEC_EXECUTABLE=$(which mpiexec-openmpi-gcc11) -DCMAKE_CXX_COMPILER=mpicxx-openmpi-gcc11 -DCMAKE_Fortran_COMPILER=mpifort-openmpi-gcc11 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-openmpi
+# cmake --build build-openmpi --verbose && cmake --install build-openmpi --verbose
+
 rm -rf build-openmpi $HOME/src/c/MPIstuff/mpiwrapper-openmpi
-cmake -S . -B build-openmpi -G Ninja -DMPIEXEC_EXECUTABLE=$(which mpiexec-openmpi-gcc11) -DCMAKE_CXX_COMPILER=mpicxx-openmpi-gcc11 -DCMAKE_Fortran_COMPILER=mpifort-openmpi-gcc11 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-openmpi
+# Avoid the flag `-flat_namespace` in OPENMPI's mpicxx
+# cmake -S . -B build-openmpi -G Ninja -DMPIEXEC_EXECUTABLE=$(which mpiexec-openmpi-gcc10) -DCMAKE_CXX_COMPILER=mpicxx-openmpi-gcc10 -DCMAKE_Fortran_COMPILER=mpifort-openmpi-gcc10 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-openmpi
+cmake \
+    -S . \
+    -B build-openmpi \
+    -G Ninja \
+    -DCMAKE_C_COMPILER=gcc-mp-11 \
+    -DCMAKE_CXX_COMPILER=g++-mp-11 \
+    -DCMAKE_Fortran_COMPILER=gfortran-mp-11 \
+    -DMPI_C_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/openmpi-gcc11 \
+    -DMPI_C_LIB_NAMES='mpi' \
+    -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/openmpi-gcc11 \
+    -DMPI_CXX_LIB_NAMES='mpi_cxx;mpi' \
+    -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS='/opt/local/include/openmpi-gcc11;/opt/local/lib/openmpi-gcc11' \
+    -DMPI_Fortran_LIB_NAMES='mpi_usempif08;mpi_usempi_ignore_tkr;mpi_mpifh;mpi' \
+    -DMPI_mpi_LIBRARY=/opt/local/lib/openmpi-gcc11/libmpi.dylib \
+    -DMPI_mpi_cxx_LIBRARY=/opt/local/lib/openmpi-gcc11/libmpi_cxx.dylib \
+    -DMPI_mpi_mpifh_LIBRARY=/opt/local/lib/openmpi-gcc11/libmpi_mpifh.dylib \
+    -DMPI_mpi_usempi_ignore_tkr_LIBRARY=/opt/local/lib/openmpi-gcc11/libmpi_usempi_ignore_tkr.dylib \
+    -DMPI_mpi_usempif08_LIBRARY=/opt/local/lib/openmpi-gcc11/libmpi_usempif08.dylib \
+    -DMPIEXEC_EXECUTABLE=/opt/local/bin/mpiexec-openmpi-gcc11 \
+    -DCMAKE_BUILD_TYPE=Debug \
+    -DCMAKE_INSTALL_PREFIX=$HOME/src/c/MPIstuff/mpiwrapper-openmpi
 cmake --build build-openmpi --verbose && cmake --install build-openmpi --verbose
 
 rm -rf build-mpich $HOME/src/c/MPIstuff/mpiwrapper-mpich
@@ -64,7 +90,7 @@ module unload mpi
 cmake_minimum_required(VERSION 3.12...3.20)
 project(
   MPIwrapper
-  VERSION 2.1.0
+  VERSION 2.2.0
   DESCRIPTION "MPI wrapper"
   LANGUAGES CXX Fortran
   )
