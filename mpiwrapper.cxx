@@ -62,11 +62,14 @@ void mpi_op_wrapper(void *invec, void *inoutvec, int *len,
   op_map[N].wpi_user_fn(invec, inoutvec, len, &wpi_datatype);
 }
 
+namespace {
 template <int Nstart, int Nend>
 typename std::enable_if<(Nend < Nstart + 1), void>::type init_op_tuple() {}
 template <int Nstart, int Nend>
 typename std::enable_if<(Nend == Nstart + 1), void>::type init_op_tuple() {
-  op_map[Nstart - 1].mpi_user_fn = mpi_op_wrapper<Nstart - 1>;
+  static_assert(0 <= Nstart &&
+                Nstart < std::tuple_size<decltype(op_map)>::value);
+  op_map[Nstart].mpi_user_fn = mpi_op_wrapper<Nstart>;
 }
 template <int Nstart, int Nend>
 typename std::enable_if<(Nend > Nstart + 1), void>::type init_op_tuple() {
@@ -75,6 +78,7 @@ typename std::enable_if<(Nend > Nstart + 1), void>::type init_op_tuple() {
   init_op_tuple<Nstart, Nmid>();
   init_op_tuple<Nmid, Nend>();
 }
+} // namespace
 __attribute__((__constructor__)) void init_op_map() {
   init_op_tuple<0, std::tuple_size<decltype(op_map)>::value>();
 }
@@ -89,7 +93,7 @@ int Op_map_create(WPI_User_function *const wpi_user_fn_) {
       return n;
     }
   }
-  std::fprintf(stderr, "Too many operators created\n");
+  std::fprintf(stderr, "Too many MPI_Op created\n");
   std::exit(1);
 }
 
@@ -103,7 +107,7 @@ void Op_map_free(const MPI_Op mpi_op_) {
       return;
     }
   }
-  std::fprintf(stderr, "Tried to free non-existing operator\n");
+  std::fprintf(stderr, "Tried to free non-existing MPI_Op\n");
   std::exit(1);
 }
 
