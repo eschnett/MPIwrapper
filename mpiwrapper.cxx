@@ -62,14 +62,21 @@ void mpi_op_wrapper(void *invec, void *inoutvec, int *len,
   op_map[N].wpi_user_fn(invec, inoutvec, len, &wpi_datatype);
 }
 
-template <int N>
-typename std::enable_if<(N == 0), void>::type init_op_tuple() {}
-template <int N> typename std::enable_if<(N != 0), void>::type init_op_tuple() {
-  op_map[N - 1].mpi_user_fn = mpi_op_wrapper<N - 1>;
-  init_op_tuple<N - 1>();
+template <int Nstart, int Nend>
+typename std::enable_if<(Nend < Nstart + 1), void>::type init_op_tuple() {}
+template <int Nstart, int Nend>
+typename std::enable_if<(Nend == Nstart + 1), void>::type init_op_tuple() {
+  op_map[Nstart - 1].mpi_user_fn = mpi_op_wrapper<Nstart - 1>;
+}
+template <int Nstart, int Nend>
+typename std::enable_if<(Nend > Nstart + 1), void>::type init_op_tuple() {
+  constexpr int Nmid = (Nstart + Nend) / 2;
+  static_assert(Nstart < Nmid && Nmid < Nend, "");
+  init_op_tuple<Nstart, Nmid>();
+  init_op_tuple<Nmid, Nend>();
 }
 __attribute__((__constructor__)) void init_op_map() {
-  init_op_tuple<std::tuple_size<decltype(op_map)>::value>();
+  init_op_tuple<0, std::tuple_size<decltype(op_map)>::value>();
 }
 
 int Op_map_create(WPI_User_function *const wpi_user_fn_) {
