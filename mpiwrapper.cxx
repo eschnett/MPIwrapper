@@ -352,14 +352,14 @@ extern "C" int MPIABI_Op_create(MPIABI_User_function *user_fn, int commute,
   MPI_User_function *const mpi_user_fn = op_map[n].mpi_user_fn;
   const int ierr =
       MPI_Op_create((MPI_User_function *)mpi_user_fn, commute, (WPI_OpPtr)op);
-  op_map[n].mpi_op = *(MPI_Op *)(WPI_OpPtr)op;
+  op_map[n].mpi_op = *(const MPI_Op *)(WPI_const_OpPtr)op;
   return ierr;
 }
 
 extern "C" int MPIABI_Op_free(MPIABI_Op *op) {
   if (sizeof(MPI_Op) == sizeof(MPIABI_Op))
     return MPI_Op_free((MPI_Op *)op);
-  const MPI_Op old_op = *(MPI_OpPtr)(WPI_OpPtr)op;
+  const MPI_Op old_op = *(const MPI_Op *)(WPI_const_OpPtr)op;
   const int ierr = MPI_Op_free((WPI_OpPtr)op);
   Op_map_free(old_op);
   return ierr;
