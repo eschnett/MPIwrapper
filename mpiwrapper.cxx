@@ -67,8 +67,8 @@ template <int Nstart, int Nend>
 typename std::enable_if<(Nend < Nstart + 1), void>::type init_op_tuple() {}
 template <int Nstart, int Nend>
 typename std::enable_if<(Nend == Nstart + 1), void>::type init_op_tuple() {
-  static_assert(0 <= Nstart &&
-                Nstart < std::tuple_size<decltype(op_map)>::value);
+  static_assert(
+      0 <= Nstart && Nstart < std::tuple_size<decltype(op_map)>::value, "");
   op_map[Nstart].mpi_user_fn = mpi_op_wrapper<Nstart>;
 }
 template <int Nstart, int Nend>
