@@ -20,8 +20,13 @@
 
 // Compile-time constants
 
-static_assert(MPI_VERSION == MPIABI_MPI_VERSION, "");
-static_assert(MPI_SUBVERSION >= MPIABI_MPI_SUBVERSION, "");
+// Ensure that the MPI standard version is supported.
+// We allow the major version to be larger because the MPI standard is
+// very conservative in making non-backward-compatible changes.
+static_assert((MPI_VERSION == MPIABI_MPI_VERSION &&
+               MPI_SUBVERSION >= MPIABI_MPI_SUBVERSION) ||
+                  MPI_VERSION >= MPIABI_MPI_VERSION,
+              "");
 
 static_assert(MPI_MAX_DATAREP_STRING <= MPIABI_MAX_DATAREP_STRING, "");
 static_assert(MPI_MAX_ERROR_STRING <= MPIABI_MAX_ERROR_STRING, "");
