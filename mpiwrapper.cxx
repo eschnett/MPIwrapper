@@ -460,3 +460,29 @@ extern "C" int MPIABI_Comm_spawn_multiple(
       root, (WPI_Comm)comm, (WPI_CommPtr)intercomm, array_of_errcodes);
   return ierr;
 }
+
+// MPIX
+
+extern "C" int MPIXABI_Query_cuda_support() {
+#if MPI_HAS_QUERY_CUDA_SUPPORT
+  return MPIX_Query_cuda_support();
+#else
+  return 0;
+#endif
+}
+
+extern "C" int MPIXABI_Query_hip_support() {
+#if MPI_HAS_QUERY_HIP_SUPPORT
+  return MPIX_Query_hip_support();
+#else
+  return 0;
+#endif
+}
+
+extern "C" int MPIXABI_Query_ze_support() {
+#if MPI_HAS_QUERY_ZE_SUPPORT
+  return MPIX_Query_ze_support();
+#else
+  return 0;
+#endif
+}

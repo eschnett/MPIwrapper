@@ -29,6 +29,7 @@ jobs:
                 MPICH) packages=libmpich-dev;;
                 OpenMPI) packages=libopenmpi-dev;;
             esac
+            sudo apt-get update
             sudo apt-get install $packages
             ;;
         macOS)
