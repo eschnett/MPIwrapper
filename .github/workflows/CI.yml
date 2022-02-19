@@ -13,7 +13,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-20.04, macos-11]
         mpi: [MPICH, OpenMPI]
 
     runs-on: ${{matrix.os}}
