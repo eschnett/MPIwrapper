@@ -19,7 +19,7 @@ print("!     Fortran constants")
 # Declarations
 for (tp, nm) in constants_fortran:
     subs = {'mpi_nm': nm,
-            'abi_nm': re.sub(r"MPI_", "MPIABI_", nm)}
+            'abi_nm': re.sub(r"MPI(X?)_", r"MPI\1ABI_", nm)}
     tmpl = []
     tmpl.append("      integer $abi_nm")
     tmpl.append("      common /$abi_nm/ $abi_nm")
@@ -28,7 +28,7 @@ for (tp, nm) in constants_fortran:
 # Definitions
 for (tp, nm) in constants_fortran:
     subs = {'mpi_nm': nm,
-            'abi_nm': re.sub(r"MPI_", "MPIABI_", nm)}
+            'abi_nm': re.sub(r"MPI(X?)_", r"MPI\1ABI_", nm)}
     tmpl = []
     tmpl.append("      $abi_nm = $mpi_nm")
     print("\n".join(map(lambda line: wrap(Template(line).substitute(subs)), tmpl)))
