@@ -5,6 +5,5 @@ authors:
     given-names: Erik
     orcid: 0000-0002-4518-9017
 title: MPIwrapper
-version: v2.3.0
-doi: XXX
+version: v2.3.1
 date-released: 2022-02-19
