@@ -229,7 +229,11 @@ struct WPI_Status : MPIABI_Status {
 static_assert(sizeof(WPI_Status) == sizeof(MPIABI_Status), "");
 static_assert(alignof(WPI_Status) == alignof(MPIABI_Status), "");
 static_assert(sizeof WPI_Status::mpi_status >= sizeof(MPI_Status), "");
-static_assert(alignof WPI_Status::mpi_status >= alignof(MPI_Status), "");
+namespace {
+using mpi_status_type = decltype(WPI_Status::mpi_status);
+static_assert(std::is_union<mpi_status_type>::value, "");
+static_assert(alignof(mpi_status_type) >= alignof(MPI_Status), "");
+} // namespace
 static_assert(sizeof(WPI_Status) >= sizeof(MPI_Status), "");
 static_assert(alignof(WPI_Status) >= alignof(MPI_Status), "");
 static_assert(WPI_STATUS_SIZE * sizeof(WPI_Fint) == sizeof(WPI_Status), "");
