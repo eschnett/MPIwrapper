@@ -23,11 +23,20 @@ for (tp, nm, args, flags) in functions:
     for (i, (atp, anm)) in enumerate(args):
         subs['abi_atp{0}'.format(i)] = re.sub(r"MPI(X?)_", r"MPI\1ABI_", atp)
         subs['anm{0}'.format(i)] = anm
-    tmpl = ["$abi_tp $abi_nm("]
+    tmpl = []
+
+    tmpl.append("$abi_tp P$abi_nm(")
     for (i, (atp, anm)) in enumerate(args):
         tmpl.append("  $abi_atp{0} $anm{0},".format(i))
     tmpl[-1] = re.sub(r",?$", "", tmpl[-1])  # remove trailing comma of last argument
     tmpl.append(");")
+
+    tmpl.append("$abi_tp $abi_nm(")
+    for (i, (atp, anm)) in enumerate(args):
+        tmpl.append("  $abi_atp{0} $anm{0},".format(i))
+    tmpl[-1] = re.sub(r",?$", "", tmpl[-1])  # remove trailing comma of last argument
+    tmpl.append(");")
+
     print(Template("\n".join(tmpl)).substitute(subs))
 
 print()
@@ -46,14 +55,24 @@ for (tp, nm, args) in functions_fortran:
     for (i, (atp, anm)) in enumerate(args):
         subs['abi_atp{0}'.format(i)] = re.sub(r"MPI(X?)_\w+", r"MPI\1ABI_Fint", atp)
         subs['anm{0}'.format(i)] = anm
-    tmpl = ["$abi_tp $abi_nm("]
+    tmpl = []
+
+    tmpl.append("$abi_tp p$abi_nm(")
     for (i, (atp, anm)) in enumerate(args):
         tmpl.append("  $abi_atp{0} $anm{0},".format(i))
     tmpl[-1] = re.sub(r",?$", "", tmpl[-1])  # remove trailing comma of last argument
     tmpl.append(");")
+
+    tmpl.append("$abi_tp $abi_nm(")
+    for (i, (atp, anm)) in enumerate(args):
+        tmpl.append("  $abi_atp{0} $anm{0},".format(i))
+    tmpl[-1] = re.sub(r",?$", "", tmpl[-1])  # remove trailing comma of last argument
+    tmpl.append(");")
+
     # tmpl = ["extern $abi_tp (* const $abi_nm)("]
     # for (i, (atp, anm)) in enumerate(args):
     #     tmpl.append("  $abi_atp{0} $anm{0},".format(i))
     # tmpl[-1] = re.sub(r",?$", "", tmpl[-1])  # remove trailing comma of last argument
     # tmpl.append(");")
+
     print(Template("\n".join(tmpl)).substitute(subs))
