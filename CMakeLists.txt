@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12...3.20)
 project(
   MPIwrapper
-  VERSION 2.6.0
+  VERSION 2.7.0
   DESCRIPTION "MPI wrapper"
   LANGUAGES CXX Fortran
   )
@@ -15,7 +15,7 @@ include(GNUInstallDirs)
 
 find_package(MPI REQUIRED)
 message(STATUS "Using MPIEXEC_EXECUTABLE: ${MPIEXEC_EXECUTABLE}")
-if (${MPIEXEC_EXECUTABLE} STREQUAL "MPIEXEC_EXECUTABLE-NOTFOUND")
+if(${MPIEXEC_EXECUTABLE} STREQUAL "MPIEXEC_EXECUTABLE-NOTFOUND")
   message(FATAL_ERROR "MPIEXEC_EXECUTABLE not set. Set the cmake variable MPIEXEC_EXECUTABLE to point to mpiexec.")
 endif()
 include(CheckMPIFeatures)

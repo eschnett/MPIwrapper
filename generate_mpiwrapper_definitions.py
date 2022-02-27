@@ -60,12 +60,12 @@ print()
 print("// Fortran functions")
 for (tp, nm, args) in functions_fortran:
     subs = {'mpi_tp': tp,
-            'abi_tp': re.sub(r"MPI(X?)_\w+", r"MPI\1ABI_Fint", tp),
+            'abi_tp': re.sub(r"MPI(X?)_\w+", r"MPIABI_Fint", tp),
             'mpi_nm': nm.lower() + "_",
             'abi_nm': re.sub(r"MPI(X?)_", r"MPI\1ABI_", nm).lower() + "_"}
     for (i, (atp, anm)) in enumerate(args):
         subs['mpi_atp{0}'.format(i)] = atp
-        subs['abi_atp{0}'.format(i)] = re.sub(r"MPI(X?)_\w+", r"MPI\1ABI_Fint", atp)
+        subs['abi_atp{0}'.format(i)] = re.sub(r"MPI(X?)_\w+", r"MPIABI_Fint", atp)
         subs['anm{0}'.format(i)] = anm
     tmpl = ["extern $abi_tp $mpi_nm("]
     for (i, (atp, anm)) in enumerate(args):
@@ -83,14 +83,4 @@ for (tp, nm, args) in functions_fortran:
     tmpl[-1] = re.sub(r",?$", "", tmpl[-1])  # replace trailing comma of last argument
     tmpl.append("  );")
     tmpl.append("}");
-    # tmpl = ["extern $abi_tp $mpi_nm("]
-    # for (i, (atp, anm)) in enumerate(args):
-    #     tmpl.append("  $abi_atp{0} $anm{0},".format(i))
-    # tmpl[-1] = re.sub(r",?$", "", tmpl[-1])  # replace trailing comma of last argument
-    # tmpl.append(");");
-    # tmpl.append("$abi_tp (* const $abi_nm)(")
-    # for (i, (atp, anm)) in enumerate(args):
-    #     tmpl.append("  $abi_atp{0} $anm{0},".format(i))
-    # tmpl[-1] = re.sub(r",?$", "", tmpl[-1])  # remove trailing comma of last argument
-    # tmpl.append(") = $mpi_nm;")
     print(Template("\n".join(tmpl)).substitute(subs))

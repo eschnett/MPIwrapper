@@ -52,6 +52,11 @@ static_assert(alignof(MPI_Aint) == alignof(WPI_Aint), "");
 // - MPICH uses 8 bytes for `MPI_Count` and `MPI_Offset`
 // - OpenMPI uses at most `ssize_t` for `MPI_Count` and `MPI_Offset`,
 //   which has only 32 bits on 32-bit architectures.
+// - We follow the MPICH conventions. This means that MPIwrapper won't
+//   build with OpenMPI on 32-bit architectures.
+// - We could correct this, and this would require adding code to
+//   convert between these integer types both for the C and Fortran
+//   functions.
 typedef MPIABI_Count WPI_Count;
 static_assert(sizeof(MPI_Count) == sizeof(WPI_Count), "");
 static_assert(alignof(MPI_Count) == alignof(WPI_Count), "");
