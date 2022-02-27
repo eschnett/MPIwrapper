@@ -4,7 +4,7 @@
 
 !     Assert that MPI_STATUS_SIZE <= 6
       integer cond
-      parameter (cond = min(0, MPI_STATUS_SIZE - 6))
+      parameter (cond = max(0, MPI_STATUS_SIZE - 6))
       integer(1 - abs(cond)) check
 
       include "mpiwrapper_definitions_fortran.h"
