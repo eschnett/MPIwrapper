@@ -38,7 +38,7 @@ with open("src/mpiabi_defn_constants_c.h", "w") as file:
                 'abi_nm': re.sub(r"MPI(X?)_", r"MPI\1ABI_", nm)}
         rcast = "($abi_tp)" if re.search(r"MPI(X?)_", tp) else ""
         file.write(Template("$abi_tp const $abi_nm = "+rcast+"$mpi_nm;\n").substitute(subs))
-    
+
 with open("src/mpiabi_defn_functions_c.h", "w") as file:
     file.write("// Define C MPI functions\n")
     file.write("\n")
@@ -71,11 +71,11 @@ with open("src/mpiabi_defn_functions_c.h", "w") as file:
         tmpl.append("}");
         file.write(Template("\n".join(tmpl)).substitute(subs))
         file.write("\n")
-    
+
 with open("src/mpiabi_defn_constants_fortran.h", "w") as file:
     file.write("!     Define Fortran MPI constants\n")
     file.write("\n")
-    
+
     # Declarations
     for (tp, nm) in constants_fortran:
         subs = {'mpi_nm': nm,
@@ -85,7 +85,7 @@ with open("src/mpiabi_defn_constants_fortran.h", "w") as file:
         tmpl.append("      common /$abi_nm/ $abi_nm")
         file.write("\n".join(map(lambda line: wrap(Template(line).substitute(subs)), tmpl)))
         file.write("\n")
-    
+
     # Definitions
     for (tp, nm) in constants_fortran:
         subs = {'mpi_nm': nm,
@@ -94,7 +94,7 @@ with open("src/mpiabi_defn_constants_fortran.h", "w") as file:
         tmpl.append("      $abi_nm = $mpi_nm")
         file.write("\n".join(map(lambda line: wrap(Template(line).substitute(subs)), tmpl)))
         file.write("\n")
-    
+
 with open("src/mpiabi_defn_functions_fortran.h", "w") as file:
     file.write("// Define Fortran MPI functions\n")
     file.write("\n")
