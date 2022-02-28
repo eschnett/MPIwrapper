@@ -9,4 +9,8 @@
 
       include "mpiwrapper_definitions_fortran.h"
 
+      call mpiwrapper_store_sentinels(
+     &     MPI_STATUS_IGNORE,
+     &     MPI_STATUSES_IGNORE)
+
       end

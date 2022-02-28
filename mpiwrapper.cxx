@@ -115,7 +115,7 @@ void Op_map_free(const MPI_Op mpi_op_) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// Wrap most constants functions automatically
+// Wrap most constants and functions automatically
 
 extern "C" {
 #include "mpiwrapper_definitions.h"
@@ -485,4 +485,17 @@ extern "C" int MPIXABI_Query_ze_support() {
 #else
   return 0;
 #endif
+}
+
+// Fortran bindings
+
+extern int *mpiabi_status_ignore_;
+int *mpiabi_status_ignore_;
+extern int *mpiabi_statuses_ignore_;
+int *mpiabi_statuses_ignore_;
+
+extern "C" void mpiwrapper_store_sentinels_(int *mpi_status_ignore,
+                                            int *mpi_statuses_ignore) {
+  mpiabi_status_ignore_ = mpi_status_ignore;
+  mpiabi_statuses_ignore_ = mpi_statuses_ignore;
 }
