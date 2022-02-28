@@ -20,46 +20,69 @@ if(${MPIEXEC_EXECUTABLE} STREQUAL "MPIEXEC_EXECUTABLE-NOTFOUND")
 endif()
 include(CheckMPIFeatures)
 
-configure_file(mpiwrapper_version.h.in mpiwrapper_version.h @ONLY)
+
+
+configure_file(src/mpiwrapper_version.h.in src/mpiwrapper_version.h @ONLY)
 
 add_custom_command(
-  OUTPUT mpiabi_declarations.h
-  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/generate_mpiabi_declarations.py >mpiabi_declarations.h
+  OUTPUT
+  src/mpiabi_decl_constants_c.h
+  src/mpiabi_decl_functions_c.h
+  src/mpiabi_decl_constants_fortran.h
+  src/mpiabi_decl_functions_fortran.h
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/gen/gen_decl.py
   DEPENDS
-  ${CMAKE_CURRENT_SOURCE_DIR}/generate_mpiabi_declarations.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/mpi_constants.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/mpi_functions.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/mpi_constants_fortran.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/mpi_functions_fortran.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/gen/gen_decl.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/mpiabi/mpi_constants.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/mpiabi/mpi_functions.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/mpiabi/mpi_constants_fortran.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/mpiabi/mpi_functions_fortran.py
   )
 
 add_custom_command(
-  OUTPUT mpiwrapper_definitions.h
-  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/generate_mpiwrapper_definitions.py >mpiwrapper_definitions.h
+  OUTPUT
+  src/mpiabi_defn_constants_c.h
+  src/mpiabi_defn_functions_c.h
+  src/mpiabi_defn_constants_fortran.h
+  src/mpiabi_defn_functions_fortran.h
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/gen/gen_defn.py
   DEPENDS
-  ${CMAKE_CURRENT_SOURCE_DIR}/generate_mpiwrapper_definitions.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/mpi_constants.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/mpi_functions.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/mpi_functions_fortran.py
-  )
-
-add_custom_command(
-  OUTPUT mpiwrapper_definitions_fortran.h
-  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/generate_mpiwrapper_definitions_fortran.py >mpiwrapper_definitions_fortran.h
-  DEPENDS
-  ${CMAKE_CURRENT_SOURCE_DIR}/generate_mpiwrapper_definitions_fortran.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/mpi_constants_fortran.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/gen/gen_defn.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/mpiabi/mpi_constants.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/mpiabi/mpi_functions.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/mpiabi/mpi_constants_fortran.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/mpiabi/mpi_functions_fortran.py
   )
 
 add_library(mpiwrapper MODULE
-  mpiabi.h mpiabi_declarations.h
-  mpiwrapper_version.h
-  mpiwrapper.cxx mpiwrapper.hxx mpiwrapper_definitions.h
-  mpiwrapper.f mpiwrapper_definitions_fortran.h)
+  # *** C ***
+  # source file
+  src/mpiwrapper.cxx
+  # header files
+  src/mpiwrapper.hxx
+  mpiabi/mpiabi.h
+  # configured header files
+  src/mpiwrapper_version.h
+  # generated source files
+  src/mpiabi_decl_constants_c.h
+  src/mpiabi_decl_functions_c.h
+  src/mpiabi_decl_constants_fortran.h
+  src/mpiabi_decl_functions_fortran.h
+  src/mpiabi_defn_constants_c.h
+  src/mpiabi_defn_functions_c.h
+  src/mpiabi_defn_functions_fortran.h
+  # *** Fortran ***
+  # source file
+  src/mpiwrapper.f
+  # header files
+  mpiabi/mpiabif.h
+  # generated source files
+  src/mpiabi_defn_constants_fortran.h
+  )
 # set_target_properties(mpiwrapper PROPERTIES
 #   SOVERSION 2.0.0
 # )
-target_include_directories(mpiwrapper PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(mpiwrapper PRIVATE mpiabi ${CMAKE_CURRENT_BINARY_DIR}/src)
 target_link_libraries(mpiwrapper PRIVATE MPI::MPI_CXX MPI::MPI_Fortran)
 
 if(APPLE)
@@ -81,9 +104,9 @@ install(
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
   )
 
-configure_file(mpiwrapperexec.in mpiwrapperexec @ONLY)
+configure_file(bin/mpiwrapperexec.in bin/mpiwrapperexec @ONLY)
 install(
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/mpiwrapperexec"
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/bin/mpiwrapperexec"
   DESTINATION ${CMAKE_INSTALL_BINDIR}
   PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
   )

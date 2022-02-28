@@ -384,7 +384,10 @@ typedef WPI_Win_errhandler_function WPI_Win_errhandler_fn;
 extern "C" {
 #endif
 
-#include "mpiabi_declarations.h"
+#include "mpiabi_decl_constants_c.h"
+#include "mpiabi_decl_functions_c.h"
+#include "mpiabi_decl_constants_fortran.h"
+#include "mpiabi_decl_functions_fortran.h"
 
 #ifdef __cplusplus
 }

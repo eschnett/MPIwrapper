@@ -278,10 +278,9 @@ constants_fortran = [
 
     ("MPI_Request", "MPI_REQUEST_NULL"),
 
+    # These constants are declared manually
     # ("MPI_Status *", "MPI_STATUS_IGNORE"),
     # ("MPI_Status *", "MPI_STATUSES_IGNORE"),
-    # MPICH: INTEGER MPI_STATUS_IGNORE(MPI_STATUS_SIZE)
-    # MPICH: INTEGER MPI_STATUSES_IGNORE(MPI_STATUS_SIZE,1)
 
     # ("MPI_Type_copy_attr_function *", "MPI_TYPE_DUP_FN"),
     # ("MPI_Type_copy_attr_function *", "MPI_TYPE_NULL_COPY_FN"),

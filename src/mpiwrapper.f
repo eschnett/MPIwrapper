@@ -7,7 +7,7 @@
       parameter (cond = max(0, MPI_STATUS_SIZE - 6))
       integer(1 - abs(cond)) check
 
-      include "mpiwrapper_definitions_fortran.h"
+      include "mpiabi_defn_constants_fortran.h"
 
       call mpiwrapper_store_sentinels(
      &     MPI_STATUS_IGNORE,

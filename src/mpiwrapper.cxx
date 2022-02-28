@@ -118,7 +118,9 @@ void Op_map_free(const MPI_Op mpi_op_) {
 // Wrap most constants and functions automatically
 
 extern "C" {
-#include "mpiwrapper_definitions.h"
+#include "mpiabi_defn_constants_c.h"
+#include "mpiabi_defn_functions_c.h"
+#include "mpiabi_defn_functions_fortran.h"
 }
 
 // Handle the remaining functions manually
