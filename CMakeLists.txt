@@ -3,7 +3,7 @@ project(
   MPIwrapper
   VERSION 2.7.0
   DESCRIPTION "MPI wrapper"
-  LANGUAGES CXX Fortran
+  LANGUAGES C CXX Fortran
   )
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
@@ -23,6 +23,19 @@ include(CheckMPIFeatures)
 
 
 configure_file(src/mpiwrapper_version.h.in src/mpiwrapper_version.h @ONLY)
+
+include(CheckTypeSize)
+check_type_size(ptrdiff_t MPITRAMPOLINE_SIZEOF_CPTRDIFF_T LANGUAGE C)
+if(${MPITRAMPOLINE_SIZEOF_CPTRDIFF_T} STREQUAL "" OR
+    ${MPITRAMPOLINE_SIZEOF_CPTRDIFF_T} STREQUAL "0")
+  message(FATAL_ERROR "Cannot determine sizeof(ptrdiff_t).")
+endif()
+
+configure_file(mpiabi/mpiabif.h.in mpiabi/mpiabif.h @ONLY)
+install(
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/mpiabi/mpiabif.h"
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  )
 
 add_custom_command(
   OUTPUT
@@ -82,7 +95,9 @@ add_library(mpiwrapper MODULE
 # set_target_properties(mpiwrapper PROPERTIES
 #   SOVERSION 2.0.0
 # )
-target_include_directories(mpiwrapper PRIVATE mpiabi ${CMAKE_CURRENT_BINARY_DIR}/src)
+target_include_directories(
+  mpiwrapper
+  PRIVATE mpiabi ${CMAKE_CURRENT_BINARY_DIR}/mpiabi ${CMAKE_CURRENT_BINARY_DIR}/src)
 target_link_libraries(mpiwrapper PRIVATE MPI::MPI_CXX MPI::MPI_Fortran)
 
 if(APPLE)
