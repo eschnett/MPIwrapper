@@ -99,7 +99,7 @@ jobs:
                     -DCMAKE_CXX_COMPILER=g++-mp-10 \
                     -DCMAKE_Fortran_COMPILER=gfortran-mp-10 \
                     -DMPI_C_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc10 \
-                    -DMPI_C_LIB_NAMES=mpi;pmpi' \
+                    -DMPI_C_LIB_NAMES='mpi;pmpi' \
                     -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc10 \
                     -DMPI_CXX_LIB_NAMES='mpicxx;mpi;pmpi' \
                     -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc10 \
