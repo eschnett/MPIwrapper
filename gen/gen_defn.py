@@ -69,6 +69,7 @@ with open("src/mpiabi_defn_functions_c.h", "w") as file:
         tmpl.append("}");
         file.write(Template("\n".join(tmpl)).substitute(subs))
         file.write("\n")
+        file.write("\n")
 
 with open("src/mpiabi_defn_constants_fortran.h", "w") as file:
     file.write("!     Define Fortran MPI constants\n")
@@ -83,6 +84,8 @@ with open("src/mpiabi_defn_constants_fortran.h", "w") as file:
         tmpl.append("      common /$abi_nm/ $abi_nm")
         file.write("\n".join(map(lambda line: wrap(Template(line).substitute(subs)), tmpl)))
         file.write("\n")
+
+    file.write("\n")
 
     # Definitions
     for (tp, nm) in constants_fortran:
@@ -122,4 +125,5 @@ with open("src/mpiabi_defn_functions_fortran.h", "w") as file:
         tmpl.append("  );")
         tmpl.append("}");
         file.write(Template("\n".join(tmpl)).substitute(subs))
+        file.write("\n")
         file.write("\n")

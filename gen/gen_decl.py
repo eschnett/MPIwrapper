@@ -36,6 +36,7 @@ with open("src/mpiabi_decl_functions_c.h", "w") as file:
         tmpl.append(");")
         file.write(Template("\n".join(tmpl)).substitute(subs))
         file.write("\n")
+        file.write("\n")
 
 with open("src/mpiabi_decl_constants_fortran.h", "w") as file:
     file.write("// Declare Fortran MPI constants\n")
@@ -65,4 +66,5 @@ with open("src/mpiabi_decl_functions_fortran.h", "w") as file:
         # tmpl[-1] = re.sub(r",?$", "", tmpl[-1])  # remove trailing comma of last argument
         # tmpl.append(");")
         file.write(Template("\n".join(tmpl)).substitute(subs))
+        file.write("\n")
         file.write("\n")

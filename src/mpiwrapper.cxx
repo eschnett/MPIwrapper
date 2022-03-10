@@ -79,7 +79,7 @@ typename std::enable_if<(Nend > Nstart + 1), void>::type init_op_tuple() {
   init_op_tuple<Nmid, Nend>();
 }
 } // namespace
-__attribute__((__constructor__)) void init_op_map() {
+static __attribute__((__constructor__)) void init_op_map() {
   init_op_tuple<0, std::tuple_size<decltype(op_map)>::value>();
 }
 
@@ -491,13 +491,40 @@ extern "C" int MPIXABI_Query_ze_support() {
 
 // Fortran bindings
 
-extern int *mpiabi_status_ignore_;
-int *mpiabi_status_ignore_;
-extern int *mpiabi_statuses_ignore_;
-int *mpiabi_statuses_ignore_;
+extern "C" {
+extern char **mpiabi_argv_null_;
+extern char ***mpiabi_argvs_null_;
+extern MPIABI_Fint *mpiabi_bottom_;
+extern MPIABI_Fint *mpiabi_errcodes_ignore_;
+extern MPIABI_Fint *mpiabi_in_place_;
+extern MPIABI_Fint *mpiabi_status_ignore_;
+extern MPIABI_Fint *mpiabi_statuses_ignore_;
+extern MPIABI_Fint *mpiabi_unweighted_;
+extern MPIABI_Fint *mpiabi_weights_empty_;
 
-extern "C" void mpiwrapper_store_sentinels_(int *mpi_status_ignore,
-                                            int *mpi_statuses_ignore) {
-  mpiabi_status_ignore_ = mpi_status_ignore;
-  mpiabi_statuses_ignore_ = mpi_statuses_ignore;
+char **mpiabi_argv_null_;
+char ***mpiabi_argvs_null_;
+MPIABI_Fint *mpiabi_bottom_;
+MPIABI_Fint *mpiabi_errcodes_ignore_;
+MPIABI_Fint *mpiabi_in_place_;
+MPIABI_Fint *mpiabi_status_ignore_;
+MPIABI_Fint *mpiabi_statuses_ignore_;
+MPIABI_Fint *mpiabi_unweighted_;
+MPIABI_Fint *mpiabi_weights_empty_;
+}
+
+extern "C" void mpiwrapper_store_sentinels_(
+    char **mpi_argv_null_, char ***mpi_argvs_null_, MPIABI_Fint *mpi_bottom_,
+    MPIABI_Fint *mpi_errcodes_ignore_, MPIABI_Fint *mpi_in_place_,
+    MPIABI_Fint *mpi_status_ignore_, MPIABI_Fint *mpi_statuses_ignore_,
+    MPIABI_Fint *mpi_unweighted_, MPIABI_Fint *mpi_weights_empty_) {
+  mpiabi_argv_null_ = mpi_argv_null_;
+  mpiabi_argvs_null_ = mpi_argvs_null_;
+  mpiabi_bottom_ = mpi_bottom_;
+  mpiabi_errcodes_ignore_ = mpi_errcodes_ignore_;
+  mpiabi_in_place_ = mpi_in_place_;
+  mpiabi_status_ignore_ = mpi_status_ignore_;
+  mpiabi_statuses_ignore_ = mpi_statuses_ignore_;
+  mpiabi_unweighted_ = mpi_unweighted_;
+  mpiabi_weights_empty_ = mpi_weights_empty_;
 }
