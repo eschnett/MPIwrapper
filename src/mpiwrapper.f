@@ -15,9 +15,6 @@
 
       include "mpiabi_defn_constants_fortran.h"
 
-      print '("MPIwrapper: MPI_IN_PLACE loc: ", i0)', loc(MPI_IN_PLACE)
-      print '("MPIwrapper: MPI_IN_PLACE: ", i0)', MPI_IN_PLACE
-
       call mpiwrapper_store_sentinels(
      &     MPI_ARGV_NULL,
      &     MPI_ARGVS_NULL,
