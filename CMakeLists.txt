@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12...3.20)
 project(
   MPIwrapper
-  VERSION 2.7.0
+  VERSION 2.8.0
   DESCRIPTION "MPI wrapper"
   LANGUAGES C CXX Fortran
   )
