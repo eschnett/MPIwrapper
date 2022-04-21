@@ -44,16 +44,16 @@ jobs:
             # brew install $packages
 
             # Install MacPorts
-            wget https://github.com/macports/macports-base/releases/download/v2.7.1/MacPorts-2.7.1-11-BigSur.pkg
-            sudo /usr/sbin/installer -pkg MacPorts-2.7.1-11-BigSur.pkg -target /
-            rm MacPorts-2.7.1-11-BigSur.pkg
+            wget https://github.com/macports/macports-base/releases/download/v2.7.2/MacPorts-2.7.2-11-BigSur.pkg
+            sudo /usr/sbin/installer -pkg MacPorts-2.7.2-11-BigSur.pkg -target /
+            rm MacPorts-2.7.2-11-BigSur.pkg
             echo /opt/local/bin >> $GITHUB_PATH
             echo /opt/local/sbin >> $GITHUB_PATH
             export "PATH=/opt/local/bin:/opt/local/sbin:$PATH"
             sudo port sync
 
             case "${{matrix.mpi}}" in
-                MPICH) packages='mpich-gcc10 +fortran';;
+                MPICH) packages='mpich-gcc11 +fortran';;
                 OpenMPI) packages='openmpi-gcc11 +fortran';;
             esac
             sudo port install $packages
@@ -98,17 +98,17 @@ jobs:
                     -DCMAKE_C_COMPILER=gcc-mp-10 \
                     -DCMAKE_CXX_COMPILER=g++-mp-10 \
                     -DCMAKE_Fortran_COMPILER=gfortran-mp-10 \
-                    -DMPI_C_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc10 \
+                    -DMPI_C_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc11 \
                     -DMPI_C_LIB_NAMES='mpi;pmpi' \
-                    -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc10 \
+                    -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc11 \
                     -DMPI_CXX_LIB_NAMES='mpicxx;mpi;pmpi' \
-                    -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc10 \
+                    -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc11 \
                     -DMPI_Fortran_LIB_NAMES='mpifort;mpi;pmpi' \
-                    -DMPI_mpi_LIBRARY=/opt/local/lib/mpich-gcc10/libmpi.dylib \
-                    -DMPI_mpicxx_LIBRARY=/opt/local/lib/mpich-gcc10/libmpicxx.dylib \
-                    -DMPI_mpifort_LIBRARY=/opt/local/lib/mpich-gcc10/libmpifort.dylib \
-                    -DMPI_pmpi_LIBRARY=/opt/local/lib/mpich-gcc10/libpmpi.dylib \
-                    -DMPIEXEC_EXECUTABLE=/opt/local/bin/mpiexec-mpich-gcc10 \
+                    -DMPI_mpi_LIBRARY=/opt/local/lib/mpich-gcc11/libmpi.dylib \
+                    -DMPI_mpicxx_LIBRARY=/opt/local/lib/mpich-gcc11/libmpicxx.dylib \
+                    -DMPI_mpifort_LIBRARY=/opt/local/lib/mpich-gcc11/libmpifort.dylib \
+                    -DMPI_pmpi_LIBRARY=/opt/local/lib/mpich-gcc11/libpmpi.dylib \
+                    -DMPIEXEC_EXECUTABLE=/opt/local/bin/mpiexec-mpich-gcc11 \
                     -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
                     -DCMAKE_INSTALL_PREFIX=$HOME/mpiwrapper-${{matrix.mpi}}
                 ;;
