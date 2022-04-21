@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12...3.20)
 project(
   MPIwrapper
-  VERSION 2.8.0
+  VERSION 2.8.1
   DESCRIPTION "MPI wrapper"
   LANGUAGES C CXX Fortran
   )
@@ -32,10 +32,6 @@ if(${MPITRAMPOLINE_SIZEOF_CPTRDIFF_T} STREQUAL "" OR
 endif()
 
 configure_file(mpiabi/mpiabif.h.in mpiabi/mpiabif.h @ONLY)
-install(
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/mpiabi/mpiabif.h"
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-  )
 
 add_custom_command(
   OUTPUT
