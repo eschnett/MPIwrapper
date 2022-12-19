@@ -279,6 +279,16 @@ MPIABI_Type_create_struct(int count, const int array_of_blocklengths[],
   return ierr;
 }
 
+// removed
+extern "C" int MPIABI_Type_struct(int count, const int array_of_blocklengths[],
+                                  const MPIABI_Aint array_of_displacements[],
+                                  const MPIABI_Datatype array_of_datatypes[],
+                                  MPIABI_Datatype *newtype) {
+  return MPIABI_Type_create_struct(count, array_of_blocklengths,
+                                   array_of_displacements, array_of_datatypes,
+                                   newtype);
+}
+
 extern "C" int MPIABI_Type_get_contents(MPIABI_Datatype datatype,
                                         int max_integers, int max_addresses,
                                         int max_datatypes,
@@ -460,6 +470,72 @@ extern "C" int MPIABI_Comm_spawn_multiple(
   const int ierr = MPI_Comm_spawn_multiple(
       count, array_of_commands, array_of_argv, array_of_maxprocs, infos.data(),
       root, (WPI_Comm)comm, (WPI_CommPtr)intercomm, array_of_errcodes);
+  return ierr;
+}
+
+// 13.5 File Interoperability
+
+namespace {
+
+struct datarep_state_t {
+  MPIABI_Datarep_conversion_function *read_conversion_fn;
+  MPIABI_Datarep_conversion_function *write_conversion_fn;
+  MPIABI_Datarep_extent_function *dtype_file_extent_fn;
+  void *extra_state;
+};
+
+// MPI_Datarep_conversion_function
+int forward_read_conversion_fn(void *userbuf, MPI_Datatype datatype, int count,
+                               void *filebuf, MPI_Offset position,
+                               void *extra_state) {
+  const datarep_state_t *const args =
+      static_cast<const datarep_state_t *>(extra_state);
+  return (args->read_conversion_fn)(userbuf, (WPI_Datatype)datatype, count,
+                                    filebuf, (WPI_Offset)position,
+                                    args->extra_state);
+}
+
+// MPI_Datarep_conversion_function
+int forward_write_conversion_fn(void *userbuf, MPI_Datatype datatype, int count,
+                                void *filebuf, MPI_Offset position,
+                                void *extra_state) {
+  const datarep_state_t *const args =
+      static_cast<const datarep_state_t *>(extra_state);
+  return (args->write_conversion_fn)(userbuf, (WPI_Datatype)datatype, count,
+                                     filebuf, (WPI_Offset)position,
+                                     args->extra_state);
+}
+
+// MPI_Datarep_extent_function
+int forward_dtype_file_extent_fn(MPI_Datatype datatype, MPI_Aint *extent,
+                                 void *extra_state) {
+  const datarep_state_t *const args =
+      static_cast<const datarep_state_t *>(extra_state);
+  return (args->dtype_file_extent_fn)((WPI_Datatype)datatype,
+                                      (WPI_Aint *)extent, args->extra_state);
+}
+} // namespace
+
+extern "C" int MPIABI_Register_datarep(
+    const char *datarep, MPIABI_Datarep_conversion_function *read_conversion_fn,
+    MPIABI_Datarep_conversion_function *write_conversion_fn,
+    MPIABI_Datarep_extent_function *dtype_file_extent_fn, void *extra_state) {
+  if (sizeof(MPI_Datatype) == sizeof(MPIABI_Datatype) &&
+      sizeof(MPI_Offset) == sizeof(MPIABI_Offset))
+    return MPI_Register_datarep(
+        datarep, (MPI_Datarep_conversion_function *)read_conversion_fn,
+        (MPI_Datarep_conversion_function *)write_conversion_fn,
+        (MPI_Datarep_extent_function *)dtype_file_extent_fn, extra_state);
+  // There is no way to unregister a data representation, and thus no way to
+  // free our internal state
+  datarep_state_t *new_extra_state =
+      new datarep_state_t{read_conversion_fn, write_conversion_fn,
+                          dtype_file_extent_fn, extra_state};
+  const int ierr = MPI_Register_datarep(
+      datarep, forward_read_conversion_fn, forward_write_conversion_fn,
+      forward_dtype_file_extent_fn, new_extra_state);
+  if (ierr != MPI_SUCCESS)
+    delete new_extra_state;
   return ierr;
 }
 
