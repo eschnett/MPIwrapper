@@ -473,6 +473,63 @@ extern "C" int MPIABI_Comm_spawn_multiple(
   return ierr;
 }
 
+// 12.2 Generalized Requests
+
+namespace {
+
+struct grequest_state_t {
+  MPIABI_Grequest_query_function *query_fn;
+  MPIABI_Grequest_free_function *free_fn;
+  MPIABI_Grequest_cancel_function *cancel_fn;
+  void *extra_state;
+};
+
+// MPI_Grequest_query_function
+int forward_query_fn(void *extra_state, MPI_Status *status) {
+  const grequest_state_t *const grequest_state =
+      static_cast<const grequest_state_t *>(extra_state);
+  return grequest_state->query_fn(grequest_state->extra_state,
+                                  (WPI_StatusPtr)status);
+}
+
+//  MPI_Grequest_free_function
+int forward_free_fn(void *extra_state) {
+  grequest_state_t *const grequest_state =
+      static_cast<grequest_state_t *>(extra_state);
+  const int ierr = grequest_state->free_fn(grequest_state->extra_state);
+  // For safety
+  grequest_state->query_fn = nullptr;
+  grequest_state->free_fn = nullptr;
+  grequest_state->cancel_fn = nullptr;
+  grequest_state->extra_state = nullptr;
+  delete grequest_state;
+  return ierr;
+}
+
+//  MPI_Grequest_cancel_function;
+int forward_cancel_fn(void *extra_state, int complete) {
+  const grequest_state_t *const grequest_state =
+      static_cast<const grequest_state_t *>(extra_state);
+  return grequest_state->cancel_fn(grequest_state->extra_state, complete);
+}
+
+} // namespace
+
+extern "C" int MPIABI_Grequest_start(MPIABI_Grequest_query_function *query_fn,
+                                     MPIABI_Grequest_free_function *free_fn,
+                                     MPIABI_Grequest_cancel_function *cancel_fn,
+                                     void *extra_state,
+                                     MPIABI_Request *request) {
+  grequest_state_t *const grequest_state =
+      new grequest_state_t{query_fn, free_fn, cancel_fn, extra_state};
+  const int ierr =
+      MPI_Grequest_start(forward_query_fn, forward_free_fn, forward_cancel_fn,
+                         grequest_state, (WPI_RequestPtr)request);
+  if (ierr != MPI_SUCCESS)
+    delete grequest_state;
+  return ierr;
+}
+
 // 13.5 File Interoperability
 
 namespace {
@@ -488,31 +545,31 @@ struct datarep_state_t {
 int forward_read_conversion_fn(void *userbuf, MPI_Datatype datatype, int count,
                                void *filebuf, MPI_Offset position,
                                void *extra_state) {
-  const datarep_state_t *const args =
+  const datarep_state_t *const datarep_state =
       static_cast<const datarep_state_t *>(extra_state);
-  return (args->read_conversion_fn)(userbuf, (WPI_Datatype)datatype, count,
-                                    filebuf, (WPI_Offset)position,
-                                    args->extra_state);
+  return (datarep_state->read_conversion_fn)(
+      userbuf, (WPI_Datatype)datatype, count, filebuf, (WPI_Offset)position,
+      datarep_state->extra_state);
 }
 
 // MPI_Datarep_conversion_function
 int forward_write_conversion_fn(void *userbuf, MPI_Datatype datatype, int count,
                                 void *filebuf, MPI_Offset position,
                                 void *extra_state) {
-  const datarep_state_t *const args =
+  const datarep_state_t *const datarep_state =
       static_cast<const datarep_state_t *>(extra_state);
-  return (args->write_conversion_fn)(userbuf, (WPI_Datatype)datatype, count,
-                                     filebuf, (WPI_Offset)position,
-                                     args->extra_state);
+  return (datarep_state->write_conversion_fn)(
+      userbuf, (WPI_Datatype)datatype, count, filebuf, (WPI_Offset)position,
+      datarep_state->extra_state);
 }
 
 // MPI_Datarep_extent_function
 int forward_dtype_file_extent_fn(MPI_Datatype datatype, MPI_Aint *extent,
                                  void *extra_state) {
-  const datarep_state_t *const args =
+  const datarep_state_t *const datarep_state =
       static_cast<const datarep_state_t *>(extra_state);
-  return (args->dtype_file_extent_fn)((WPI_Datatype)datatype,
-                                      (WPI_Aint *)extent, args->extra_state);
+  return (datarep_state->dtype_file_extent_fn)(
+      (WPI_Datatype)datatype, (WPI_Aint *)extent, datarep_state->extra_state);
 }
 } // namespace
 
@@ -528,14 +585,14 @@ extern "C" int MPIABI_Register_datarep(
         (MPI_Datarep_extent_function *)dtype_file_extent_fn, extra_state);
   // There is no way to unregister a data representation, and thus no way to
   // free our internal state
-  datarep_state_t *new_extra_state =
+  datarep_state_t *datarep_state =
       new datarep_state_t{read_conversion_fn, write_conversion_fn,
                           dtype_file_extent_fn, extra_state};
   const int ierr = MPI_Register_datarep(
       datarep, forward_read_conversion_fn, forward_write_conversion_fn,
-      forward_dtype_file_extent_fn, new_extra_state);
+      forward_dtype_file_extent_fn, datarep_state);
   if (ierr != MPI_SUCCESS)
-    delete new_extra_state;
+    delete datarep_state;
   return ierr;
 }
 
