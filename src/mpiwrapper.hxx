@@ -73,26 +73,21 @@ static_assert(alignof(MPI_Offset) == alignof(WPI_Offset), "");
 
 // Handles
 
-template <typename MPI_Handle> struct alignas(alignof(uintptr_t)) WPI_Handle {
-  MPI_Handle mpi_handle;
-  uint8_t padding[sizeof(uintptr_t) - sizeof(MPI_Handle)];
+template <typename MPI_Handle> struct WPI_Handle {
+  uintptr_t wpi_handle;
+
   // We need to initialize the padding to ensure that handles can be compared
   // for equality
-  void pad() { memset(padding, 0, sizeof padding); }
+  void pad() { wpi_handle = (uintptr_t)(MPI_Handle)wpi_handle; }
 
   WPI_Handle() = default;
 
   // Convert from and to MPI: Handle padding
-  WPI_Handle(MPI_Handle mpi_handle_) : mpi_handle(mpi_handle_) { pad(); }
-  operator MPI_Handle() const { return mpi_handle; }
+  WPI_Handle(MPI_Handle mpi_handle) : wpi_handle((uintptr_t)mpi_handle) {}
+  operator MPI_Handle() const { return (MPI_Handle)wpi_handle; }
 
-  // Convert from and to MPIABI: Use memcpy
-  WPI_Handle(uintptr_t wrapped) { memcpy(this, &wrapped, sizeof wrapped); }
-  operator uintptr_t() const {
-    uintptr_t wrapped;
-    memcpy(&wrapped, this, sizeof wrapped);
-    return wrapped;
-  }
+  WPI_Handle(uintptr_t wrapped) : wpi_handle(wrapped) {}
+  operator uintptr_t() const { return wpi_handle; }
 };
 
 template <typename MPI_Handle> struct WPI_HandlePtr {
@@ -385,8 +380,8 @@ extern "C" {
 #endif
 
 #include "mpiabi_decl_constants_c.h"
-#include "mpiabi_decl_functions_c.h"
 #include "mpiabi_decl_constants_fortran.h"
+#include "mpiabi_decl_functions_c.h"
 #include "mpiabi_decl_functions_fortran.h"
 
 #ifdef __cplusplus
