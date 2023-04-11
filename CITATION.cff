@@ -5,6 +5,6 @@ authors:
     given-names: Erik
     orcid: https://orcid.org/0000-0002-4518-9017
 title: MPIwrapper
-version: v2.10.1
+version: v2.10.2
 doi: 10.5281/zenodo.6174342
-date-released: 2023-01-06
+date-released: 2023-04-11
