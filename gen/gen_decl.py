@@ -49,10 +49,12 @@ with open("src/mpiabi_decl_constants_fortran.h", "w") as file:
 with open("src/mpiabi_decl_functions_fortran.h", "w") as file:
     file.write("// Declare Fortran MPI functions\n")
     file.write("\n")
+    num_ierror_args = 0
     for (tp, nm, args) in functions_fortran:
         subs = {'abi_tp': re.sub(r"MPI(X?)_\w+", r"MPI\1ABI_Fint", tp),
                 'abi_nm': re.sub(r"MPI(X?)_", r"MPI\1ABI_", nm).lower() + "_"}
         for (i, (atp, anm)) in enumerate(args):
+            num_ierror_args += anm == "ierror"
             subs['abi_atp{0}'.format(i)] = re.sub(r"MPI(X?)_\w+", r"MPI\1ABI_Fint", atp)
             subs['anm{0}'.format(i)] = anm
         tmpl = ["$abi_tp $abi_nm("]
@@ -68,3 +70,4 @@ with open("src/mpiabi_decl_functions_fortran.h", "w") as file:
         file.write(Template("\n".join(tmpl)).substitute(subs))
         file.write("\n")
         file.write("\n")
+    assert num_ierror_args == 0 if nm in ["MPI_Wtime", "MPI_Wtick"] else 1
