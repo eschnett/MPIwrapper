@@ -17,7 +17,7 @@ function(CheckMPIFeatures)
         }
       "
       HAVE_MPI_EXT)
-    if(NOT HAVE_MPI_EXT)
+    if(NOT ${HAVE_MPI_EXT})
       set(HAVE_MPI_EXT 0)
     endif()
 
@@ -35,7 +35,7 @@ function(CheckMPIFeatures)
         }
       "
       MPI_HAS_QUERY_CUDA_SUPPORT)
-    if(NOT MPI_HAS_QUERY_CUDA_SUPPORT)
+    if(NOT ${MPI_HAS_QUERY_CUDA_SUPPORT})
       set(MPI_HAS_QUERY_CUDA_SUPPORT 0)
     endif()
 
@@ -51,7 +51,7 @@ function(CheckMPIFeatures)
         }
       "
       MPI_HAS_QUERY_HIP_SUPPORT)
-    if(NOT MPI_HAS_QUERY_HIP_SUPPORT)
+    if(NOT ${MPI_HAS_QUERY_HIP_SUPPORT})
       set(MPI_HAS_QUERY_HIP_SUPPORT 0)
     endif()
 
@@ -67,7 +67,7 @@ function(CheckMPIFeatures)
         }
       "
       MPI_HAS_QUERY_ZE_SUPPORT)
-    if(NOT MPI_HAS_QUERY_ZE_SUPPORT)
+    if(NOT ${MPI_HAS_QUERY_ZE_SUPPORT})
       set(MPI_HAS_QUERY_ZE_SUPPORT 0)
     endif()
 
