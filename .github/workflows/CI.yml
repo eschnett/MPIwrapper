@@ -13,13 +13,13 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-11]
+        os: [ubuntu-22.04, macos-12]
         mpi: [MPICH, OpenMPI]
 
     runs-on: ${{matrix.os}}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Install ${{matrix.mpi}}
       run: |
