@@ -6,7 +6,7 @@
 #include "mpiabi.h"
 
 #include <mpi.h>
-#if HAVE_MPI_EXT
+#ifdef HAVE_MPI_EXT
 #include <mpi-ext.h>
 #endif
 

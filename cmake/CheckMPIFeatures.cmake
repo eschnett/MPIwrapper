@@ -1,6 +1,7 @@
 include(CheckCXXSourceCompiles)
+
 function(CheckMPIFeatures)
-  if (NOT DEFINED HAVE_MPI_EXT OR NOT DEFINED MPI_HAS_QUERY_CUDA_SUPPORT)
+  if (NOT DEFINED HAVE_MPI_EXT OR NOT DEFINED HAVE_MPIX_QUERY_CUDA_SUPPORT)
     list(JOIN MPI_COMPILE_FLAGS " " CMAKE_REQUIRED_FLAGS)
     set(CMAKE_REQUIRED_INCLUDES ${MPI_INCLUDE_PATH})
     set(CMAKE_REQUIRED_LIBRARIES ${MPI_LIBRARIES})
@@ -17,19 +18,15 @@ function(CheckMPIFeatures)
         }
       "
       HAVE_MPI_EXT)
-    if(${HAVE_MPI_EXT})
-      set(HAVE_MPI_EXT 1)
-    else()
-      set(HAVE_MPI_EXT 0)
-    endif()
-    message(STATUS "HAVE_MPI_EXT=${HAVE_MPI_EXT}")
 
-    list(APPEND CMAKE_REQUIRED_DEFINITIONS -DHAVE_MPI_EXT=${HAVE_MPI_EXT})
+    if(HAVE_MPI_EXT)
+      list(APPEND CMAKE_REQUIRED_DEFINITIONS -DMPIWRAPPER_HAVE_MPI_EXT=1)
+    endif()
 
     check_cxx_source_compiles(
       "
         #include <mpi.h>
-        #if HAVE_MPI_EXT
+        #ifdef HAVE_MPI_EXT
         #include <mpi-ext.h>
         #endif
         int main() {
@@ -38,16 +35,11 @@ function(CheckMPIFeatures)
         }
       "
       HAVE_MPIX_QUERY_CUDA_SUPPORT)
-    if(${HAVE_MPIX_QUERY_CUDA_SUPPORT})
-      set(HAVE_MPIX_QUERY_CUDA_SUPPORT 1)
-    else()
-      set(HAVE_MPIX_QUERY_CUDA_SUPPORT 0)
-    endif()
 
     check_cxx_source_compiles(
       "
         #include <mpi.h>
-        #if HAVE_MPI_EXT
+        #ifdef HAVE_MPI_EXT
         #include <mpi-ext.h>
         #endif
         int main() {
@@ -56,16 +48,11 @@ function(CheckMPIFeatures)
         }
       "
       HAVE_MPIX_QUERY_HIP_SUPPORT)
-    if(${HAVE_MPIX_QUERY_HIP_SUPPORT})
-      set(HAVE_MPIX_QUERY_HIP_SUPPORT 1)
-    else()
-      set(HAVE_MPIX_QUERY_HIP_SUPPORT 0)
-    endif()
 
     check_cxx_source_compiles(
       "
         #include <mpi.h>
-        #if HAVE_MPI_EXT
+        #ifdef HAVE_MPI_EXT
         #include <mpi-ext.h>
         #endif
         int main() {
@@ -74,13 +61,8 @@ function(CheckMPIFeatures)
         }
       "
       HAVE_MPIX_QUERY_ZE_SUPPORT)
-    if(${HAVE_MPIX_QUERY_ZE_SUPPORT})
-      set(HAVE_MPIX_QUERY_ZE_SUPPORT 1)
-    else()
-      set(HAVE_MPIX_QUERY_ZE_SUPPORT 0)
-    endif()
 
-    list(REMOVE_ITEM CMAKE_REQUIRED_DEFINITIONS -DHAVE_MPI_EXT=${HAVE_MPI_EXT})
+    list(REMOVE_ITEM CMAKE_REQUIRED_DEFINITIONS -DMPIWRAPPER_HAVE_MPI_EXT=1)
   endif()
 endfunction()
 
