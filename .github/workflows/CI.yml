@@ -95,9 +95,9 @@ jobs:
                 # build MPICH from source, which is a bit tedious to
                 # implement here.
                 cmake -B ${{github.workspace}}/build \
-                    -DCMAKE_C_COMPILER=gcc-mp-11 \
-                    -DCMAKE_CXX_COMPILER=g++-mp-11 \
-                    -DCMAKE_Fortran_COMPILER=gfortran-mp-11 \
+                    -DCMAKE_C_COMPILER=gcc-mp-12 \
+                    -DCMAKE_CXX_COMPILER=g++-mp-12 \
+                    -DCMAKE_Fortran_COMPILER=gfortran-mp-12 \
                     -DMPI_C_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc12 \
                     -DMPI_C_LIB_NAMES='mpi;pmpi' \
                     -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc12 \
