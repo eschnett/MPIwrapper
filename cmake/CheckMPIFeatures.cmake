@@ -22,6 +22,7 @@ function(CheckMPIFeatures)
     else()
       set(HAVE_MPI_EXT 0)
     endif()
+    message(STATUS "HAVE_MPI_EXT=${HAVE_MPI_EXT}")
 
     list(APPEND CMAKE_REQUIRED_DEFINITIONS -DHAVE_MPI_EXT=${HAVE_MPI_EXT})
 
