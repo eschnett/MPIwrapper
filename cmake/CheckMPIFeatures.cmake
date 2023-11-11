@@ -4,6 +4,7 @@ function(CheckMPIFeatures)
     list(JOIN MPI_COMPILE_FLAGS " " CMAKE_REQUIRED_FLAGS)
     set(CMAKE_REQUIRED_INCLUDES ${MPI_INCLUDE_PATH})
     set(CMAKE_REQUIRED_LIBRARIES ${MPI_LIBRARIES})
+
     # We cannot use check_include_file here as <mpi.h> needs to be
     # included before <mpi-ext.h>, and check_include_file doesn't
     # support this.
@@ -16,7 +17,6 @@ function(CheckMPIFeatures)
         }
       "
       HAVE_MPI_EXT)
-
     if(NOT HAVE_MPI_EXT)
       set(HAVE_MPI_EXT 0)
     endif()
@@ -33,8 +33,11 @@ function(CheckMPIFeatures)
           int result = MPIX_Query_cuda_support();
           return 0;
         }
-        "
-        MPI_HAS_QUERY_CUDA_SUPPORT)
+      "
+      MPI_HAS_QUERY_CUDA_SUPPORT)
+    if(NOT MPI_HAS_QUERY_CUDA_SUPPORT)
+      set(MPI_HAS_QUERY_CUDA_SUPPORT 0)
+    endif()
 
     check_cxx_source_compiles(
       "
@@ -46,8 +49,11 @@ function(CheckMPIFeatures)
           int result = MPIX_Query_hip_support();
           return 0;
         }
-        "
-        MPI_HAS_QUERY_HIP_SUPPORT)
+      "
+      MPI_HAS_QUERY_HIP_SUPPORT)
+    if(NOT MPI_HAS_QUERY_HIP_SUPPORT)
+      set(MPI_HAS_QUERY_HIP_SUPPORT 0)
+    endif()
 
     check_cxx_source_compiles(
       "
@@ -59,8 +65,11 @@ function(CheckMPIFeatures)
           int result = MPIX_Query_ze_support();
           return 0;
         }
-        "
-        MPI_HAS_QUERY_ZE_SUPPORT)
+      "
+      MPI_HAS_QUERY_ZE_SUPPORT)
+    if(NOT MPI_HAS_QUERY_ZE_SUPPORT)
+      set(MPI_HAS_QUERY_ZE_SUPPORT 0)
+    endif()
 
     list(REMOVE_ITEM CMAKE_REQUIRED_DEFINITIONS -DHAVE_MPI_EXT)
   endif()
