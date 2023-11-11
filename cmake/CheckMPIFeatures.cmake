@@ -17,7 +17,9 @@ function(CheckMPIFeatures)
         }
       "
       HAVE_MPI_EXT)
-    if(NOT ${HAVE_MPI_EXT})
+    if(${HAVE_MPI_EXT})
+      set(HAVE_MPI_EXT 1)
+    else()
       set(HAVE_MPI_EXT 0)
     endif()
 
@@ -34,9 +36,11 @@ function(CheckMPIFeatures)
           return 0;
         }
       "
-      MPI_HAS_QUERY_CUDA_SUPPORT)
-    if(NOT ${MPI_HAS_QUERY_CUDA_SUPPORT})
-      set(MPI_HAS_QUERY_CUDA_SUPPORT 0)
+      HAVE_MPIX_QUERY_CUDA_SUPPORT)
+    if(${HAVE_MPIX_QUERY_CUDA_SUPPORT})
+      set(HAVE_MPIX_QUERY_CUDA_SUPPORT 1)
+    else()
+      set(HAVE_MPIX_QUERY_CUDA_SUPPORT 0)
     endif()
 
     check_cxx_source_compiles(
@@ -50,9 +54,11 @@ function(CheckMPIFeatures)
           return 0;
         }
       "
-      MPI_HAS_QUERY_HIP_SUPPORT)
-    if(NOT ${MPI_HAS_QUERY_HIP_SUPPORT})
-      set(MPI_HAS_QUERY_HIP_SUPPORT 0)
+      HAVE_MPIX_QUERY_HIP_SUPPORT)
+    if(${HAVE_MPIX_QUERY_HIP_SUPPORT})
+      set(HAVE_MPIX_QUERY_HIP_SUPPORT 1)
+    else()
+      set(HAVE_MPIX_QUERY_HIP_SUPPORT 0)
     endif()
 
     check_cxx_source_compiles(
@@ -66,12 +72,14 @@ function(CheckMPIFeatures)
           return 0;
         }
       "
-      MPI_HAS_QUERY_ZE_SUPPORT)
-    if(NOT ${MPI_HAS_QUERY_ZE_SUPPORT})
-      set(MPI_HAS_QUERY_ZE_SUPPORT 0)
+      HAVE_MPIX_QUERY_ZE_SUPPORT)
+    if(${HAVE_MPIX_QUERY_ZE_SUPPORT})
+      set(HAVE_MPIX_QUERY_ZE_SUPPORT 1)
+    else()
+      set(HAVE_MPIX_QUERY_ZE_SUPPORT 0)
     endif()
 
-    list(REMOVE_ITEM CMAKE_REQUIRED_DEFINITIONS -DHAVE_MPI_EXT)
+    list(REMOVE_ITEM CMAKE_REQUIRED_DEFINITIONS -DHAVE_MPI_EXT=${HAVE_MPI_EXT})
   endif()
 endfunction()
 
