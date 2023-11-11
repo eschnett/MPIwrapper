@@ -599,7 +599,7 @@ extern "C" int MPIABI_Register_datarep(
 // MPIX
 
 extern "C" int MPIXABI_Query_cuda_support() {
-#if MPI_HAS_QUERY_CUDA_SUPPORT
+#ifdef HAVE_MPIX_QUERY_CUDA_SUPPORT
   return MPIX_Query_cuda_support();
 #else
   return 0;
@@ -607,7 +607,7 @@ extern "C" int MPIXABI_Query_cuda_support() {
 }
 
 extern "C" int MPIXABI_Query_hip_support() {
-#if MPI_HAS_QUERY_HIP_SUPPORT
+#ifdef HAVE_MPIX_QUERY_HIP_SUPPORT
   return MPIX_Query_hip_support();
 #else
   return 0;
@@ -615,7 +615,7 @@ extern "C" int MPIXABI_Query_hip_support() {
 }
 
 extern "C" int MPIXABI_Query_ze_support() {
-#if MPI_HAS_QUERY_ZE_SUPPORT
+#ifdef HAVE_MPIX_QUERY_ZE_SUPPORT
   return MPIX_Query_ze_support();
 #else
   return 0;
