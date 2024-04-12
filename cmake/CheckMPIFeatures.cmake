@@ -26,7 +26,7 @@ function(CheckMPIFeatures)
     check_cxx_source_compiles(
       "
         #include <mpi.h>
-        #ifdef HAVE_MPI_EXT
+        #ifdef MPIWRAPPER_HAVE_MPI_EXT
         #include <mpi-ext.h>
         #endif
         int main() {
@@ -39,7 +39,7 @@ function(CheckMPIFeatures)
     check_cxx_source_compiles(
       "
         #include <mpi.h>
-        #ifdef HAVE_MPI_EXT
+        #ifdef MPIWRAPPER_HAVE_MPI_EXT
         #include <mpi-ext.h>
         #endif
         int main() {
@@ -52,7 +52,7 @@ function(CheckMPIFeatures)
     check_cxx_source_compiles(
       "
         #include <mpi.h>
-        #ifdef HAVE_MPI_EXT
+        #ifdef MPIWRAPPER_HAVE_MPI_EXT
         #include <mpi-ext.h>
         #endif
         int main() {
