@@ -9,7 +9,7 @@ if test ! -f "$plugin"; then
     exit 1
 fi
 
-if ! otool -hV "$plugin" | grep -q ' TWOLEVEL '; then
+if ! otool -hV "$plugin" | grep -q ' TWOLEVEL\( \|$\)'; then
     echo "*** ERROR: plugin $plugin does not use a two-level namespace"
     echo otool -hV "$plugin"
     otool -hV "$plugin"
