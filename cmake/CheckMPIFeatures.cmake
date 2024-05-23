@@ -56,6 +56,19 @@ function(CheckMPIFeatures)
         #include <mpi-ext.h>
         #endif
         int main() {
+          int result = MPIX_Query_rocm_support();
+          return 0;
+        }
+      "
+      HAVE_MPIX_QUERY_ROCM_SUPPORT)
+
+    check_cxx_source_compiles(
+      "
+        #include <mpi.h>
+        #ifdef MPIWRAPPER_HAVE_MPI_EXT
+        #include <mpi-ext.h>
+        #endif
+        int main() {
           int result = MPIX_Query_ze_support();
           return 0;
         }
