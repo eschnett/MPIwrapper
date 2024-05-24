@@ -614,6 +614,14 @@ extern "C" int MPIXABI_Query_hip_support() {
 #endif
 }
 
+extern "C" int MPIXABI_Query_rocm_support() {
+#ifdef HAVE_MPIX_QUERY_ROCM_SUPPORT
+  return MPIX_Query_rocm_support();
+#else
+  return 0;
+#endif
+}
+
 extern "C" int MPIXABI_Query_ze_support() {
 #ifdef HAVE_MPIX_QUERY_ZE_SUPPORT
   return MPIX_Query_ze_support();
