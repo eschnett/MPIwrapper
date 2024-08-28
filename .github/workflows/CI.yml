@@ -63,8 +63,8 @@ jobs:
             sudo port sync
 
             case "${{matrix.mpi}}" in
-                MPICH) packages='mpich-default +gcc14;;
-                OpenMPI) packages='openmpi-default +gcc14;;
+                MPICH) packages='mpich-default +gcc14';;
+                OpenMPI) packages='openmpi-default +gcc14';;
             esac
             sudo port install $packages
             ;;
