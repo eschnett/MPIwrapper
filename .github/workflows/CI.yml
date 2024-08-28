@@ -124,11 +124,11 @@ jobs:
                 ;;
             OpenMPI)
                 # The compiler wrappers have non-standard names
+                env LDFLAGS="$LDFLAGS -Wl,-ld_classic" \
                 cmake -B ${{github.workspace}}/build \
                     -DCMAKE_C_COMPILER=mpicc-openmpi-mp \
                     -DCMAKE_CXX_COMPILER=mpicxx-openmpi-mp \
                     -DCMAKE_Fortran_COMPILER=mpifort-openmpi-mp \
-                    -DCMAKE_EXE_LINKER_FLAGS=-ld_classic \
                     -DMPIEXEC_EXECUTABLE=/opt/local/bin/mpiexec-openmpi-mp \
                     -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
                     -DCMAKE_INSTALL_PREFIX=$HOME/mpiwrapper-${{matrix.mpi}}
