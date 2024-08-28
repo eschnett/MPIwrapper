@@ -64,7 +64,7 @@ jobs:
 
             case "${{matrix.mpi}}" in
                 MPICH) packages='mpich-gcc14 +fortran';;
-                OpenMPI) packages='openmpi-gcc13 +fortran';;
+                OpenMPI) packages='openmpi-gcc12 +fortran';;
             esac
             sudo port install $packages
             ;;
@@ -125,10 +125,10 @@ jobs:
             OpenMPI)
                 # The compiler wrappers have non-standard names
                 cmake -B ${{github.workspace}}/build \
-                    -DCMAKE_C_COMPILER=mpicc-openmpi-gcc13 \
-                    -DCMAKE_CXX_COMPILER=mpicxx-openmpi-gcc13 \
-                    -DCMAKE_Fortran_COMPILER=mpifort-openmpi-gcc13 \
-                    -DMPIEXEC_EXECUTABLE=/opt/local/bin/mpiexec-openmpi-gcc13 \
+                    -DCMAKE_C_COMPILER=mpicc-openmpi-gcc12 \
+                    -DCMAKE_CXX_COMPILER=mpicxx-openmpi-gcc12 \
+                    -DCMAKE_Fortran_COMPILER=mpifort-openmpi-gcc12 \
+                    -DMPIEXEC_EXECUTABLE=/opt/local/bin/mpiexec-openmpi-gcc12 \
                     -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
                     -DCMAKE_INSTALL_PREFIX=$HOME/mpiwrapper-${{matrix.mpi}}
                 ;;
