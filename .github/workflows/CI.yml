@@ -63,8 +63,8 @@ jobs:
             sudo port sync
 
             case "${{matrix.mpi}}" in
-                MPICH) packages='mpich-gcc14 +fortran';;
-                OpenMPI) packages='openmpi-gcc11 +fortran';;
+                MPICH) packages='mpich-default +gcc14;;
+                OpenMPI) packages='openmpi-default +gcc14;;
             esac
             sudo port install $packages
             ;;
@@ -108,27 +108,27 @@ jobs:
                     -DCMAKE_C_COMPILER=gcc-mp-14 \
                     -DCMAKE_CXX_COMPILER=g++-mp-14 \
                     -DCMAKE_Fortran_COMPILER=gfortran-mp-14 \
-                    -DMPI_C_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc14 \
+                    -DMPI_C_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-mp \
                     -DMPI_C_LIB_NAMES='mpi;pmpi' \
-                    -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc14 \
+                    -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-mp \
                     -DMPI_CXX_LIB_NAMES='mpicxx;mpi;pmpi' \
-                    -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc14 \
+                    -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-mp \
                     -DMPI_Fortran_LIB_NAMES='mpifort;mpi;pmpi' \
-                    -DMPI_mpi_LIBRARY=/opt/local/lib/mpich-gcc14/libmpi.dylib \
-                    -DMPI_mpicxx_LIBRARY=/opt/local/lib/mpich-gcc14/libmpicxx.dylib \
-                    -DMPI_mpifort_LIBRARY=/opt/local/lib/mpich-gcc14/libmpifort.dylib \
-                    -DMPI_pmpi_LIBRARY=/opt/local/lib/mpich-gcc14/libpmpi.dylib \
-                    -DMPIEXEC_EXECUTABLE=/opt/local/bin/mpiexec-mpich-gcc14 \
+                    -DMPI_mpi_LIBRARY=/opt/local/lib/mpich-mp/libmpi.dylib \
+                    -DMPI_mpicxx_LIBRARY=/opt/local/lib/mpich-mp/libmpicxx.dylib \
+                    -DMPI_mpifort_LIBRARY=/opt/local/lib/mpich-mp/libmpifort.dylib \
+                    -DMPI_pmpi_LIBRARY=/opt/local/lib/mpich-mp/libpmpi.dylib \
+                    -DMPIEXEC_EXECUTABLE=/opt/local/bin/mpiexec-mpich-mp \
                     -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
                     -DCMAKE_INSTALL_PREFIX=$HOME/mpiwrapper-${{matrix.mpi}}
                 ;;
             OpenMPI)
                 # The compiler wrappers have non-standard names
                 cmake -B ${{github.workspace}}/build \
-                    -DCMAKE_C_COMPILER=mpicc-openmpi-gcc11 \
-                    -DCMAKE_CXX_COMPILER=mpicxx-openmpi-gcc11 \
-                    -DCMAKE_Fortran_COMPILER=mpifort-openmpi-gcc11 \
-                    -DMPIEXEC_EXECUTABLE=/opt/local/bin/mpiexec-openmpi-gcc11 \
+                    -DCMAKE_C_COMPILER=mpicc-openmpi-mp \
+                    -DCMAKE_CXX_COMPILER=mpicxx-openmpi-mp \
+                    -DCMAKE_Fortran_COMPILER=mpifort-openmpi-mp \
+                    -DMPIEXEC_EXECUTABLE=/opt/local/bin/mpiexec-openmpi-mp \
                     -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
                     -DCMAKE_INSTALL_PREFIX=$HOME/mpiwrapper-${{matrix.mpi}}
                 ;;
