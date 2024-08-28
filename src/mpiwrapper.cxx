@@ -122,7 +122,7 @@ void Op_map_free(const MPI_Op mpi_op_) {
 #ifndef MPI_REAL16
 #define MPI_REAL16 ((MPI_Datatype)MPI_DATATYPE_NULL)
 #endif
-#ifndef MPI_REAL16
+#ifndef MPI_COMPLEX32
 #define MPI_COMPLEX32 ((MPI_Datatype)MPI_DATATYPE_NULL)
 #endif
 #endif
