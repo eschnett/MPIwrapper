@@ -13,7 +13,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-12]
+        os: [ubuntu-24.04, macos-13, macos-14]
         mpi: [MPICH, OpenMPI]
 
     runs-on: ${{matrix.os}}
@@ -44,17 +44,27 @@ jobs:
             # brew install $packages
 
             # Install MacPorts
-            wget https://github.com/macports/macports-base/releases/download/v2.8.1/MacPorts-2.8.1-12-Monterey.pkg
-            sudo /usr/sbin/installer -pkg MacPorts-2.8.1-12-Monterey.pkg -target /
-            rm MacPorts-2.8.1-12-Monterey.pkg
+            case "${{matrix.os}}" in
+                macos-13)
+                    wget https://github.com/macports/macports-base/releases/download/v2.10.1/MacPorts-2.10.1-13-Ventura.pkg
+                    sudo /usr/sbin/installer -pkg MacPorts-2.10.1-13-Ventura.pkg -target /
+                    rm MacPorts-2.10.1-13-Ventura.pkg
+                    ;;
+                macos-14)
+                    wget https://github.com/macports/macports-base/releases/download/v2.10.1/MacPorts-2.10.1-14-Sonoma.pkg
+                    sudo /usr/sbin/installer -pkg MacPorts-2.10.1-14-Sonoma.pkg -target /
+                    rm MacPorts-2.10.1-14-Sonoma.pkg
+                    ;;
+            esac
+
             echo /opt/local/bin >> $GITHUB_PATH
             echo /opt/local/sbin >> $GITHUB_PATH
             export "PATH=/opt/local/bin:/opt/local/sbin:$PATH"
             sudo port sync
 
             case "${{matrix.mpi}}" in
-                MPICH) packages='mpich-gcc12 +fortran';;
-                OpenMPI) packages='openmpi-gcc12 +fortran';;
+                MPICH) packages='mpich-gcc14 +fortran';;
+                OpenMPI) packages='openmpi-gcc14 +fortran';;
             esac
             sudo port install $packages
             ;;
@@ -95,30 +105,30 @@ jobs:
                 # build MPICH from source, which is a bit tedious to
                 # implement here.
                 cmake -B ${{github.workspace}}/build \
-                    -DCMAKE_C_COMPILER=gcc-mp-12 \
-                    -DCMAKE_CXX_COMPILER=g++-mp-12 \
-                    -DCMAKE_Fortran_COMPILER=gfortran-mp-12 \
-                    -DMPI_C_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc12 \
+                    -DCMAKE_C_COMPILER=gcc-mp-14 \
+                    -DCMAKE_CXX_COMPILER=g++-mp-14 \
+                    -DCMAKE_Fortran_COMPILER=gfortran-mp-14 \
+                    -DMPI_C_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc14 \
                     -DMPI_C_LIB_NAMES='mpi;pmpi' \
-                    -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc12 \
+                    -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc14 \
                     -DMPI_CXX_LIB_NAMES='mpicxx;mpi;pmpi' \
-                    -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc12 \
+                    -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-gcc14 \
                     -DMPI_Fortran_LIB_NAMES='mpifort;mpi;pmpi' \
-                    -DMPI_mpi_LIBRARY=/opt/local/lib/mpich-gcc12/libmpi.dylib \
-                    -DMPI_mpicxx_LIBRARY=/opt/local/lib/mpich-gcc12/libmpicxx.dylib \
-                    -DMPI_mpifort_LIBRARY=/opt/local/lib/mpich-gcc12/libmpifort.dylib \
-                    -DMPI_pmpi_LIBRARY=/opt/local/lib/mpich-gcc12/libpmpi.dylib \
-                    -DMPIEXEC_EXECUTABLE=/opt/local/bin/mpiexec-mpich-gcc12 \
+                    -DMPI_mpi_LIBRARY=/opt/local/lib/mpich-gcc14/libmpi.dylib \
+                    -DMPI_mpicxx_LIBRARY=/opt/local/lib/mpich-gcc14/libmpicxx.dylib \
+                    -DMPI_mpifort_LIBRARY=/opt/local/lib/mpich-gcc14/libmpifort.dylib \
+                    -DMPI_pmpi_LIBRARY=/opt/local/lib/mpich-gcc14/libpmpi.dylib \
+                    -DMPIEXEC_EXECUTABLE=/opt/local/bin/mpiexec-mpich-gcc14 \
                     -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
                     -DCMAKE_INSTALL_PREFIX=$HOME/mpiwrapper-${{matrix.mpi}}
                 ;;
             OpenMPI)
                 # The compiler wrappers have non-standard names
                 cmake -B ${{github.workspace}}/build \
-                    -DCMAKE_C_COMPILER=mpicc-openmpi-gcc12 \
-                    -DCMAKE_CXX_COMPILER=mpicxx-openmpi-gcc12 \
-                    -DCMAKE_Fortran_COMPILER=mpifort-openmpi-gcc12 \
-                    -DMPIEXEC_EXECUTABLE=/opt/local/bin/mpiexec-openmpi-gcc12 \
+                    -DCMAKE_C_COMPILER=mpicc-openmpi-gcc14 \
+                    -DCMAKE_CXX_COMPILER=mpicxx-openmpi-gcc14 \
+                    -DCMAKE_Fortran_COMPILER=mpifort-openmpi-gcc14 \
+                    -DMPIEXEC_EXECUTABLE=/opt/local/bin/mpiexec-openmpi-gcc14 \
                     -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
                     -DCMAKE_INSTALL_PREFIX=$HOME/mpiwrapper-${{matrix.mpi}}
                 ;;
