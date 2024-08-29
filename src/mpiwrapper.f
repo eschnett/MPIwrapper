@@ -13,10 +13,10 @@
       integer(1 - abs(MPI_INTEGER_KIND - 4)) check_mpi_integer_kind
       integer(1 - abs(MPI_OFFSET_KIND - 8)) check_mpi_offset_kind
 
-      include "mpiabi_defn_constants_fortran.h"
-
       integer version, subversion
       integer ierror
+
+      include "mpiabi_defn_constants_fortran.h"
 
 !     Call an MPI function to ensure that the sentinel constants are
 !     initialized. In MPICH, this initializes the C sentinel values.
