@@ -18,9 +18,9 @@
 
       include "mpiabi_defn_constants_fortran.h"
 
-!TODO !     Call an MPI function to ensure that the sentinel constants are
-!TODO !     initialized. In MPICH, this initializes the C sentinel values.
-!TODO       call mpi_get_version(version, subversion, ierror)
+!     Call an MPI function to ensure that the sentinel constants are
+!     initialized. In MPICH, this initializes the C sentinel values.
+!     call mpi_get_version(version, subversion, ierror)
 
       call mpiwrapper_store_sentinels(
      &     MPI_ARGV_NULL,
