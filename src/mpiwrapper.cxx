@@ -115,6 +115,18 @@ void Op_map_free(const MPI_Op mpi_op_) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// Work around missing types on ARM64 Apple:
+// On ARM64 Apple, `sizeof(long double) == 8`, and there is no 16-byte
+// real type. This affects the Fortran MPI bindings.
+#if defined __APPLE__ && defined __arm64__
+#ifndef MPI_REAL16
+#define MPI_REAL16 ((MPI_Datatype)MPI_DATATYPE_NULL)
+#endif
+#ifndef MPI_COMPLEX32
+#define MPI_COMPLEX32 ((MPI_Datatype)MPI_DATATYPE_NULL)
+#endif
+#endif
+
 // Wrap most constants and functions automatically
 
 extern "C" {
