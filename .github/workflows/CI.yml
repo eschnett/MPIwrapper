@@ -17,7 +17,9 @@ jobs:
         mpi: [MPICH, OpenMPI]
         exclude:
           - os: macos-14
-            mpi: OpenMPI        # OpenMPI is not yet supported on macos-14 (ARM)
+            mpi: MPICH  # MPICH is not yet supported on macos-14 (ARM)
+          - os: macos-14
+            mpi: OpenMPI # OpenMPI is not yet supported on macos-14 (ARM)
 
     runs-on: ${{matrix.os}}
 
