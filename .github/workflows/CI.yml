@@ -54,10 +54,10 @@ jobs:
 
             # Install MacPorts
             case "${{matrix.os}}" in
-                macos-15)
-                    wget https://github.com/macports/macports-base/releases/download/v2.12.1/MacPorts-2.12.1-15-Catalina.pkg
-                    sudo /usr/sbin/installer -pkg MacPorts-2.12.1-15-Cataline.pkg -target /
-                    rm MacPorts-2.12.1-15-Catalina.pkg
+                macos-15*)
+                    wget https://github.com/macports/macports-base/releases/download/v2.12.1/MacPorts-2.12.1-15-Sequoia.pkg
+                    sudo /usr/sbin/installer -pkg MacPorts-2.12.1-15-Sequoia.pkg -target /
+                    rm MacPorts-2.12.1-15-Sequoia.pkg
                     ;;
             esac
 
