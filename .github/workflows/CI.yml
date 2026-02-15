@@ -13,18 +13,22 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-24.04, macos-13, macos-14]
+        os:
+        - ubuntu-24.04
+        - ubuntu-24.04-arm
+        - macos-15
+        - macos-15-intel
         mpi: [MPICH, OpenMPI]
-        exclude:
-          - os: macos-14
-            mpi: MPICH  # MPICH is not yet supported on macos-14 (ARM)
-          - os: macos-14
-            mpi: OpenMPI # OpenMPI is not yet supported on macos-14 (ARM)
+        # exclude:
+        #   - os: macos-15
+        #     mpi: MPICH  # MPICH is not yet supported on macos-15 (ARM)
+        #   - os: macos-15
+        #     mpi: OpenMPI # OpenMPI is not yet supported on macos-15 (ARM)
 
     runs-on: ${{matrix.os}}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Install ${{matrix.mpi}}
       run: |
@@ -50,15 +54,10 @@ jobs:
 
             # Install MacPorts
             case "${{matrix.os}}" in
-                macos-13)
-                    wget https://github.com/macports/macports-base/releases/download/v2.10.1/MacPorts-2.10.1-13-Ventura.pkg
-                    sudo /usr/sbin/installer -pkg MacPorts-2.10.1-13-Ventura.pkg -target /
-                    rm MacPorts-2.10.1-13-Ventura.pkg
-                    ;;
-                macos-14)
-                    wget https://github.com/macports/macports-base/releases/download/v2.10.1/MacPorts-2.10.1-14-Sonoma.pkg
-                    sudo /usr/sbin/installer -pkg MacPorts-2.10.1-14-Sonoma.pkg -target /
-                    rm MacPorts-2.10.1-14-Sonoma.pkg
+                macos-15)
+                    wget https://github.com/macports/macports-base/releases/download/v2.12.1/MacPorts-2.12.1-15-Catalina.pkg
+                    sudo /usr/sbin/installer -pkg MacPorts-2.12.1-15-Cataline.pkg -target /
+                    rm MacPorts-2.12.1-15-Catalina.pkg
                     ;;
             esac
 
@@ -68,8 +67,8 @@ jobs:
             sudo port sync
 
             case "${{matrix.mpi}}" in
-                MPICH) packages='mpich-default +gcc14';;
-                OpenMPI) packages='openmpi-default +gcc14';;
+                MPICH) packages='mpich-default +gcc15';;
+                OpenMPI) packages='openmpi-default +gcc15';;
             esac
             sudo port install $packages
             ;;
@@ -110,9 +109,9 @@ jobs:
                 # build MPICH from source, which is a bit tedious to
                 # implement here.
                 cmake -B ${{github.workspace}}/build \
-                    -DCMAKE_C_COMPILER=gcc-mp-14 \
-                    -DCMAKE_CXX_COMPILER=g++-mp-14 \
-                    -DCMAKE_Fortran_COMPILER=gfortran-mp-14 \
+                    -DCMAKE_C_COMPILER=gcc-mp-15 \
+                    -DCMAKE_CXX_COMPILER=g++-mp-15 \
+                    -DCMAKE_Fortran_COMPILER=gfortran-mp-15 \
                     -DMPI_C_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-mp \
                     -DMPI_C_LIB_NAMES='mpi;pmpi' \
                     -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/opt/local/include/mpich-mp \
